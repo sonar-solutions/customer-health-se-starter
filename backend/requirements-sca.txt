@@ -1,0 +1,2 @@
+# SCA Demo: Intentionally vulnerable dependencies for SonarQube scanning demo
+requests==2.18.4

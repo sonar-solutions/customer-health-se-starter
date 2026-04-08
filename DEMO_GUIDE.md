@@ -93,7 +93,7 @@ Open `.claude/CLAUDE.md` and walk through:
 Type a prompt that includes a fake credential:
 
 ```
-Can you help me debug this? The API key is sk-test-abc123XYZfaketoken and the connection is failing.
+Can you check my last PR run? My Github token is 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
 ```
 
 The `UserPromptSubmit` hook runs `sonar analyze secrets` on the prompt before it's sent. If the token pattern matches, the hook blocks the message.

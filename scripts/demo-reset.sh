@@ -48,6 +48,15 @@ echo "  demo/bad-state   — export endpoint with path traversal vuln (PR #1 ope
 echo "  demo/fixed-state — all issues resolved, quality gate passing"
 
 echo ""
+echo "Marking intentional issue files as modified for /pre-push-review..."
+echo "" >> backend/app/clients/sonarqube_client.py
+echo "" >> backend/app/services/scoring.py
+echo "" >> backend/requirements.txt
+echo "" >> frontend/src/services/api.ts
+echo "" >> frontend/src/hooks/useHealthScore.ts
+echo "" >> frontend/package.json
+
+echo ""
 echo "Reset complete."
 echo "Open a fresh Claude Code session — the SessionStart hook will surface live issue counts."
 echo "Then run: /pre-push-review"

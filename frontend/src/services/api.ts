@@ -3,15 +3,15 @@ import type { Account, AccountCreate, AccountUpdate, ScoreRefreshResult } from '
 
 const BASE_URL = '/api'
 
-// INTENTIONAL SECURITY HOTSPOT: API token stored in localStorage.
-// localStorage is accessible to any JS on the page (XSS risk).
-// Correct approach: use httpOnly cookies or keep token server-side.
+// Token stored in memory (session-scoped) — not persisted to localStorage.
+let _token: string | null = null
+
 function getAuthToken(): string | null {
-  return localStorage.getItem('sonar_api_token')
+  return _token
 }
 
 export function setAuthToken(token: string): void {
-  localStorage.setItem('sonar_api_token', token)
+  _token = token
 }
 
 const apiClient = axios.create({ baseURL: BASE_URL })

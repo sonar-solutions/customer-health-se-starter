@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.repositories import account_repo
 from app.schemas.account import AccountCreate, AccountResponse, AccountUpdate
+from app.services import summary as summary_service
 
 router = APIRouter()
 
@@ -37,3 +38,9 @@ def update_account(account_id: int, updates: AccountUpdate, db: Session = Depend
 def delete_account(account_id: int, db: Session = Depends(get_db)):
     if not account_repo.delete_account(db, account_id):
         raise HTTPException(status_code=404, detail="Account not found")
+
+
+@router.get("/summary/stats")
+def get_summary(db: Session = Depends(get_db)):
+    """Aggregate health stats across all active accounts."""
+    return summary_service.compute(db)

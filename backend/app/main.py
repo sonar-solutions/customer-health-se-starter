@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import accounts, scores
+from app.api import accounts, scores, export
 from app.database import init_db
 
 
@@ -28,6 +28,7 @@ app.add_middleware(
 
 app.include_router(accounts.router, prefix="/api/accounts", tags=["accounts"])
 app.include_router(scores.router, prefix="/api/scores", tags=["scores"])
+app.include_router(export.router, prefix="/api", tags=["export"])
 
 
 @app.get("/health")

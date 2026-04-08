@@ -1,7 +1,7 @@
 # Customer Health Scorecard — Claude Code Guide
 
 ## Project Info
-- **SonarQube project key:** `customer-health-scorecard`
+- **SonarQube project key:** `sonar-solutions_Health-Dashboard`
 - **SonarQube org:** `sonar-solutions`
 - **MCP server:** sonarqube (available in this session)
 
@@ -71,7 +71,7 @@ lint-imports
 ### Frontend (dependency-cruiser)
 ```bash
 cd frontend
-npx depcruise src --config .dependency-cruiser.js
+npx depcruise src --config .dependency-cruiser.cjs
 ```
 
 ## Local SonarQube Scan

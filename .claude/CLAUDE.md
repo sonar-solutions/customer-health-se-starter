@@ -86,18 +86,6 @@ sonar-scanner \
 - Frontend: `pages` → `components`, `hooks`, `services` (no reverse imports)
 - Violations fail CI
 
-## Intentional Issues (for SonarQube Demo)
-These are baked in on purpose — do NOT fix them on `main`:
-
-| Issue | File | Type |
-|-------|------|------|
-| Token in query param | `backend/app/clients/sonarqube_client.py` | Security Hotspot |
-| High cognitive complexity | `backend/app/services/scoring.py` | Code Smell |
-| Token in localStorage | `frontend/src/services/api.ts` | Security Hotspot |
-| Missing error state | `frontend/src/hooks/useHealthScore.ts` | Bug |
-| `requests==2.18.4` | `backend/requirements.txt` | SCA (CVE-2018-18074) |
-| `lodash@4.17.10` | `frontend/package.json` | SCA (CVE-2019-10744) |
-
 ## Demo Branches
 - `demo/bad-state` — issues present, quality gate failing (use for "before" demo)
 - `demo/fixed-state` — issues resolved, quality gate passing (use for "after" demo)

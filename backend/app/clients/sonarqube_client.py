@@ -1,7 +1,5 @@
 """
 Client for the SonarQube Web API.
-NOTE: This client intentionally passes the auth token as a query parameter
-for demo purposes — SonarQube should flag this as a security hotspot.
 """
 from typing import Optional
 from datetime import datetime
@@ -11,14 +9,11 @@ import httpx
 class SonarQubeClient:
     def __init__(self, base_url: str, token: str):
         self.base_url = base_url.rstrip("/")
-        # INTENTIONAL ISSUE: token stored on instance, passed as query param below
         self.token = token
 
     def _get(self, path: str, params: dict = None) -> dict:
         """Make a GET request. Passes auth token as query parameter (security hotspot)."""
         params = params or {}
-        # SECURITY HOTSPOT: token should be passed as a header, not a query param
-        # Correct approach: headers={"Authorization": f"Bearer {self.token}"}
         params["token"] = self.token
         response = httpx.get(f"{self.base_url}{path}", params=params, timeout=10.0)
         response.raise_for_status()
@@ -57,3 +52,4 @@ class SonarQubeClient:
         if not date_str:
             return None
         return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+

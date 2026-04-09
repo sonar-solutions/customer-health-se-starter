@@ -3,9 +3,6 @@ import type { Account, AccountCreate, AccountUpdate, ScoreRefreshResult } from '
 
 const BASE_URL = '/api'
 
-// INTENTIONAL SECURITY HOTSPOT: API token stored in localStorage.
-// localStorage is accessible to any JS on the page (XSS risk).
-// Correct approach: use httpOnly cookies or keep token server-side.
 function getAuthToken(): string | null {
   return localStorage.getItem('sonar_api_token')
 }
@@ -45,3 +42,4 @@ export const scoresApi = {
   refresh: (accountId: number): Promise<ScoreRefreshResult> =>
     apiClient.post<ScoreRefreshResult>(`/scores/${accountId}/refresh`).then((r) => r.data),
 }
+

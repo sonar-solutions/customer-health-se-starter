@@ -28,9 +28,6 @@ def refresh_score(account_id: int, db: Session = Depends(get_db)):
     status_data = client.get_project_status(account.sonarqube_project_key)
     last_scan = client.get_last_scan_date(account.sonarqube_project_key)
 
-    # INTENTIONAL BUG: no None-check on status_data before accessing ["status"]
-    # If status_data is None (e.g. project not found), this raises TypeError.
-    # SonarQube will flag this as a potential null dereference bug.
     quality_gate_status = status_data["status"] if status_data else "NONE"
 
     days_onboarded = (datetime.now(timezone.utc) - account.created_at.replace(tzinfo=timezone.utc)).days

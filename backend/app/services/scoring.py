@@ -1,10 +1,6 @@
 """
 Health scoring engine. Calculates a 0-100 health score for each customer account
 based on quality gate status, scan recency, tier, and onboarding age.
-
-INTENTIONAL ISSUE: calculate_health_score has high cognitive complexity (>15).
-SonarQube will flag this as a code smell. A refactor would extract the
-tier multiplier and recency penalty into separate functions.
 """
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -37,10 +33,6 @@ def calculate_health_score(
 ) -> float:
     """
     Compute a 0-100 health score.
-
-    INTENTIONAL CODE SMELL: This function has cognitive complexity > 15.
-    Nested conditionals for tier multiplier, gate status, and recency penalties
-    should be extracted into helper functions.
     """
     if last_scan_at is None:
         return 0.0
@@ -108,3 +100,4 @@ def _recency_score(last_scan_at: Optional[datetime]) -> float:
     if days <= 30:
         return 40.0
     return 10.0
+

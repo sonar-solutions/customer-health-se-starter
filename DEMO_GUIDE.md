@@ -283,7 +283,7 @@ Three-agent wave:
 
 Three agents run in parallel:
 - `architecture-analyzer` — maps module structure and constraint compliance
-- `metrics-analyzer` — coverage, complexity, duplication, quality gate status
+- `health-analyzer` — coverage, complexity, duplication, quality gate status
 - `debt-hotspot-finder` — top 10 files by bug/smell density
 
 Produces a briefing a new developer (or SE) can use to understand the codebase in 5 minutes.
@@ -302,7 +302,7 @@ Open `.claude/agents/vulnerability-correlator.md` and walk through the structure
 > "Every agent is a markdown file. Your platform team writes them, commits them, PRs them.
 > Any developer who opens the project gets them automatically."
 
-Show the 7-agent inventory table from `.claude/CLAUDE.md`.
+Show the agent inventory table from `.claude/CLAUDE.md`.
 
 **Track D close:**
 
@@ -482,13 +482,15 @@ Both version-controlled, PR-reviewable, auditable.
 
 | Agent | Purpose | Key Tools |
 |-------|---------|-----------|
-| `attack-surface-mapper` | Map public endpoints and entry points | `search_by_signature_patterns`, `get_current_architecture` |
-| `vulnerability-correlator` | Inventory vulns + hotspots with CWE | `search_sonar_issues_in_projects`, `show_rule` |
+| `attack-surface-mapper` | Map public FastAPI routes and React page entries | `search_by_signature_patterns`, `get_current_architecture` |
+| `vulnerability-correlator` | Inventory vulns + SCA risks + hotspots with CWE | `search_sonar_issues_in_projects`, `search_dependency_risks`, `show_rule` |
 | `data-flow-tracer` | Trace call-path reachability | `get_upstream/downstream_call_flow` |
-| `health-analyzer` | Overall project health summary | `get_component_measures`, `get_project_quality_gate_status` |
+| `health-analyzer` | Comprehensive health: metrics, coverage, duplication, issue concentration | `get_component_measures`, `get_project_quality_gate_status` |
+| `metrics-analyzer` | Lightweight metrics dashboard | `get_component_measures`, `get_project_quality_gate_status` |
+| `debt-hotspot-finder` | Top files by bug/code-smell density | `search_sonar_issues_in_projects`, `get_source_code` |
 | `blast-radius-tracer` | Map upstream callers and dependency impact | `get_upstream_call_flow`, `get_references` |
 | `architecture-analyzer` | Check module compliance against constraints | `get_current/intended_architecture`, `get_references` |
-| `issue-fixer` | Fix a single issue with full AC/DC loop | `get_guidelines`, `run_advanced_code_analysis`, `Read`, `Edit` |
+| `issue-fixer` | Fix a single issue with full AC/DC loop | `get_guidelines`, `show_rule`, `run_advanced_code_analysis`, `Read`, `Edit` |
 
 ### Skills
 

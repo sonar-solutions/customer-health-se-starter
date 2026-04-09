@@ -98,13 +98,15 @@ sonar-scanner \
 
 | Agent | Purpose | Key Tools |
 |-------|---------|-----------|
-| `attack-surface-mapper` | Find public endpoints and entry points | `search_by_signature_patterns`, `get_current_architecture` |
-| `vulnerability-correlator` | Inventory vulns + hotspots with CWE | `search_sonar_issues_in_projects`, `show_rule` |
+| `attack-surface-mapper` | Find public FastAPI routes and React page entries | `search_by_signature_patterns`, `get_current_architecture` |
+| `vulnerability-correlator` | Inventory vulns + SCA risks + hotspots with CWE | `search_sonar_issues_in_projects`, `search_dependency_risks`, `show_rule` |
 | `data-flow-tracer` | Trace call-path reachability | `get_upstream/downstream_call_flow` |
 | `architecture-analyzer` | Check module compliance against constraints | `get_current/intended_architecture`, `get_references` |
 | `blast-radius-tracer` | Map upstream callers and dependency impact | `get_upstream_call_flow`, `get_references` |
-| `issue-fixer` | Fix a single issue with full AC/DC loop | `get_guidelines`, `run_advanced_code_analysis` |
-| `health-analyzer` | Overall project health summary | `get_component_measures`, `get_project_quality_gate_status` |
+| `issue-fixer` | Fix a single issue with full AC/DC loop | `get_guidelines`, `show_rule`, `run_advanced_code_analysis` |
+| `health-analyzer` | Comprehensive health: metrics, coverage gaps, duplication, issue concentration | `get_component_measures`, `get_project_quality_gate_status`, `search_sonar_issues_in_projects` |
+| `metrics-analyzer` | Lightweight metrics dashboard | `get_component_measures`, `get_project_quality_gate_status` |
+| `debt-hotspot-finder` | Top files by bug/code-smell density | `search_sonar_issues_in_projects`, `get_source_code` |
 
 ## Available SonarQube MCP Tools
 

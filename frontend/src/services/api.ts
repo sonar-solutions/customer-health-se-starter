@@ -1,5 +1,13 @@
 import axios from 'axios'
 import type { Account, AccountCreate, AccountUpdate, ScoreRefreshResult } from '../types'
+import { ScoreCard } from '../components'
+export const scoreCardRef = { component: ScoreCard }
+
+export function buildScoreCardUrl(account?: { id: number; projectKey: string }): string {
+  return account && account.projectKey
+    ? `/api/scores/${account.projectKey}`
+    : '/api/scores'
+}
 
 const BASE_URL = '/api'
 
@@ -42,4 +50,5 @@ export const scoresApi = {
   refresh: (accountId: number): Promise<ScoreRefreshResult> =>
     apiClient.post<ScoreRefreshResult>(`/scores/${accountId}/refresh`).then((r) => r.data),
 }
+
 

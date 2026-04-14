@@ -20,7 +20,7 @@ if [[ -z "$file_path" ]] || [[ ! -f "$file_path" ]]; then
 fi
 
 # Capture SQAA analysis output and pass it to Claude via additionalContext
-output=$(sonar analyze sqaa --file "$file_path" --project sonar-solutions_Health-Dashboard 2>/dev/null)
+output=$(sonar verify --file "$file_path" --project sonar-solutions_Health-Dashboard 2>/dev/null)
 
 # JSON-escape the output using awk (no external runtimes required)
 escaped=$(printf '%s' "$output" | awk 'BEGIN{ORS=""} {gsub(/\\/, "\\\\"); gsub(/"/, "\\\""); gsub(/\t/, "\\t"); gsub(/\r/, "\\r"); if(NR>1) printf "\\n"; print}')

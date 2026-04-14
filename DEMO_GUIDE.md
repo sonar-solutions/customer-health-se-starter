@@ -10,9 +10,10 @@
 
 - [ ] `sonar --version` passes (CLI on PATH)
 - [ ] `SONAR_TOKEN` set in shell (used by CLI and scan action)
-- [ ] Run `bash scripts/demo-reset.sh` — restores clean main, confirms all 6 intentional issues are present
+- [ ] Run `bash scripts/demo-reset.sh` — restores clean main, confirms all 6 issues are present
 - [ ] Start a fresh Claude Code session in this repo directory (SessionStart hook fires on open)
 - [ ] Verify hook fired — you should see a status message with live issue counts from SonarQube
+- [ ] Verify SonarQube MCP is connected: `/mcp`
 - [ ] Open this file in a second tab
 - [ ] Have the AC/DC blog post ready: https://www.sonarsource.com/blog/the-future-is-ac-dc-the-agent-centric-development-cycle/
 
@@ -29,7 +30,7 @@
 > Your CI is the outer loop. What we're about to show is the **inner loop** —
 > what happens before a PR is ever created."
 
-**Draw/show:**
+**Draw/show slide:**
 
 ```
 Guide → Generate → Verify → Solve
@@ -80,9 +81,12 @@ Point to the status bar message from the SessionStart hook — it should show li
 
 Open `.claude/CLAUDE.md` and walk through:
 
-1. **Mandatory workflow** — `get_guidelines` before editing, `run_advanced_code_analysis` after, quality gate check before commit
-2. **Intentional issues table** — show the 6 issues: two security hotspots (Python + TypeScript), code smell, bug, two SCA CVEs across both languages
-3. **Agent inventory** — 7 domain agents available, each with a single responsibility
+1. **Mandatory workflow** — 4 enforcement points: before editing, after editing, before commit,
+   before architecture change. Every developer who opens this repo inherits this.
+2. **Agent inventory** — specialized agents with scoped tool lists committed to the repo.
+   Not tribal knowledge — version-controlled, PR-reviewable infrastructure.
+3. **MCP tools section** — CAG (context injection), Agentic (real-time analysis), Standard
+   (quality metrics). Three layers, one integration.
 
 > "This file is committed to the repo. Every developer who clones this project gets the
 > same behavioral baseline — same rules, same workflow, same SonarQube integration.
@@ -178,7 +182,7 @@ After generation:
 Run advanced code analysis on the file you just edited.
 ```
 
-Claude calls `run_advanced_code_analysis` with the file content — same analysis engine as CI, running in real time.
+Claude runs `sonar verify` via the SonarQube CLI — same analysis engine as CI, running in real time.
 
 > "We're verifying inside the agentic loop — not waiting for CI. The outer loop becomes a
 > backstop, not the first line of defense."
@@ -192,7 +196,7 @@ Claude calls `run_advanced_code_analysis` with the file content — same analysi
 This delegates to the `issue-fixer` agent, which runs the full AC/DC loop on the highest-severity open issue:
 1. Calls `get_guidelines` and `show_rule` to understand the fix
 2. Edits the file
-3. Calls `run_advanced_code_analysis` to verify the fix didn't introduce new issues
+3. Runs `sonar verify` to verify the fix didn't introduce new issues
 
 **Track B close:**
 
@@ -240,12 +244,60 @@ Two-wave pattern:
 ```
 
 Validates:
-- **Backend:** `api` → `services` → `repositories`/`clients` (enforced by import-linter in CI)
-- **Frontend:** `pages` → `components`/`hooks`/`services`, no reverse imports (enforced by dependency-cruiser)
+- **Backend:** `api` → `services` → `repositories`/`clients`
+- **Frontend:** `pages` → `components`/`hooks`/`services`, no reverse imports (enforced by SonarQube's intended architecture)
 
-> "The architecture constraints aren't just documentation — they're enforced in CI and
-> verified here by the `architecture-analyzer` agent using SonarQube's architecture graph.
+> "The architecture constraints aren't just documentation — they're enforced by the SonarQube
+> quality gate and visualized here by the `architecture-analyzer` agent.
 > Two languages, one consistent constraint model."
+
+> See **C4** for a live push that triggers this constraint in CI.
+
+### C4 — Outer Loop: Live Push + Arch Violation
+
+**Pre-demo:** Run `bash scripts/demo-reset.sh` to reset the branch (auto-detects your GitHub username).
+
+Check out `demo/live-push-<yourname>`. Show `frontend/src/services/api.ts` — the API service
+re-exports `ScoreCard` directly from the component layer, mixing UI concerns into the data layer.
+
+Run `sonar verify` on the file first:
+
+```
+sonar verify --file frontend/src/services/api.ts --project sonar-solutions_Health-Dashboard
+```
+
+> "The inner loop sees nothing — sonar verify analyses this file in isolation. It can't
+> see the full import graph. This is exactly the gap the outer loop fills."
+
+Now push:
+
+```
+git push origin demo/live-push-<yourname>
+```
+
+The `posttool-push-watch.sh` hook fires:
+
+> "git push detected — SonarQube CI check running on PR. Invoke /sonar-watch when CI completes."
+
+Once CI completes (~2 min), run `/sonar-watch`:
+
+```
+SONAR WATCH — PR #2: Add score refresh to ScoreCard
+=====================================================
+CI:           PASSED
+Quality Gate: FAILED
+  new_maintainability_rating: C (expected A)
+
+NEXT STEPS
+  /arch-guard   ← investigate the architecture violation
+```
+
+Run `/arch-guard` to surface the exact constraint breach using SonarQube's architecture graph.
+
+> "Two enforcement layers, two different classes of problem. Hooks catch secrets before they're
+> committed. sonar verify catches code quality issues in real time. The quality gate catches
+> architectural drift that only appears when the full project graph is analyzed.
+> The inner loop is fast — the outer loop is complete."
 
 **Track C close:**
 
@@ -303,6 +355,34 @@ Open `.claude/agents/vulnerability-correlator.md` and walk through the structure
 > Any developer who opens the project gets them automatically."
 
 Show the agent inventory table from `.claude/CLAUDE.md`.
+
+### D4 — Skills vs. Agents: Why Both?
+
+> "You might wonder: why have both skills and agents? Why not just use one?"
+
+Walk through the three patterns in this project:
+
+| Pattern | Example | When to use |
+|---------|---------|-------------|
+| **Skill (inline)** | `/sonar-audit`, `/pre-push-review` | Simple workflows — sequential MCP calls, no need for isolation or parallelism |
+| **Skill → 1 agent** | `/sonar-fix`, `/arch-guard` | Need tool restrictions (e.g., isolate edit/bash capability) or context isolation |
+| **Skill → N agents** | `/security-posture`, `/sonar-blitz` | Multi-specialist workflows — parallel execution, wave orchestration, result synthesis |
+
+**Three reasons skills delegate to agents:**
+
+1. **Tool restrictions** — `attack-surface-mapper` can only search and read. `issue-fixer` can edit files and run bash. The skill orchestrates; agents are sandboxed to their capabilities.
+2. **Context isolation** — each agent gets a fresh context window. A 3-agent security assessment would bloat the main conversation with all intermediate search results. Agents keep that noise out.
+3. **Parallelism** — agents run concurrently. `/security-posture` runs attack-surface-mapper and vulnerability-correlator simultaneously in wave 1, then feeds both results to data-flow-tracer in wave 2.
+
+**Three reasons skills exist on top of agents:**
+
+1. **Orchestration** — agents are single-responsibility; skills compose them into multi-step workflows with wave ordering.
+2. **Discoverability** — `/security-posture` shows up in tab-completion. Agents don't.
+3. **Synthesis** — the skill tells Claude how to combine results from multiple agents into a coherent report.
+
+> "Think of it like microservices: agents are the services — small, focused, independently
+> deployable. Skills are the API gateway — routing, orchestration, the developer-facing
+> interface. Both are markdown. Both are committed to the repo."
 
 **Track D close:**
 
@@ -400,107 +480,12 @@ After any demo that involves `/sonar-fix`, `/sonar-blitz`, or manual edits — r
 bash scripts/demo-reset.sh
 ```
 
-This resets to clean `origin/main`. The intentional issues are permanently baked in — no re-injection needed.
+This resets to clean `origin/main`. The issues are permanently baked in — no re-injection needed.
 
 **Do not push during a demo.** If you accidentally push fixed code to `origin/main`, the issue counts in the SessionStart hook will drop. Restore by re-pushing the original `main` state.
 
 --------
 
-## Appendix: How This Is Built
+## Appendix
 
-### Agent Anatomy
-
-```yaml
-# .claude/agents/issue-fixer.md
----
-name: issue-fixer
-description: Fixes a single SonarQube issue with full AC/DC loop.
-tools:
-  - mcp__sonarqube__get_guidelines
-  - mcp__sonarqube__show_rule
-  - mcp__sonarqube__run_advanced_code_analysis
-  - Read
-  - Edit
-  - Bash
-model: sonnet
----
-
-# System prompt goes here...
-```
-
-- **name/description** — used by Claude to decide when to delegate to this agent
-- **tools** — tool restrictions. `issue-fixer` can edit code and run bash. `attack-surface-mapper` can only search and read.
-- **model** — sonnet for speed, opus for complexity
-- **Body** — step-by-step instructions, output format, constraints
-
-### The Pattern
-
-```
-Platform Team defines:          Developers invoke:
-.claude/agents/                 skills (via /skill-name)
-  attack-surface-mapper.md        /security-posture
-  vulnerability-correlator.md     /sonar-blitz
-  data-flow-tracer.md             /sonar-onboard
-  health-analyzer.md              ...
-  ...
-
-Both version-controlled, PR-reviewable, auditable.
-```
-
---------
-
-## Appendix: Enterprise Best Practices
-
-### Progression Model
-
-1. **Hooks** — Start here. Secrets scanning, session context, file protection. Zero AI autonomy required.
-2. **CLAUDE.md** — Standing instructions. Define the behavioral baseline for Claude — what to check before/after editing. Version-controlled, PR-reviewable.
-3. **Skills** — Reusable workflows. `/pre-push-review`, `/sonar-fix` — simple, human-triggered.
-4. **Agents** — Specialized building blocks. Define tool restrictions, model choices, output formats.
-5. **Multi-Agent Skills** — Orchestration. Skills that compose agents into parallel workflows.
-
-### Key Stats
-
-- **96%** of developers don't fully trust AI-generated code quality (2026 State of Code Developer Survey, 1,100+ respondents)
-- Developers **not using SonarQube are 80% more likely** to report AI adoption led to higher frequency of outages
-- PRs in agentic workflows are **10x larger** than traditional developer PRs (AC/DC blog, March 2026)
-- **37%** of AI-assisted PRs fail quality gates on first submission
-
-### Architecture Principles
-
-- **Consistent verification** — Same SonarQube rules across all AI tools (Claude, Cursor, Copilot)
-- **Shared behavioral baseline** — CLAUDE.md committed to the repo, not tribal knowledge
-- **Agent restrictions** — Tool-restricted agents prevent AI from doing things it shouldn't
-- **Verification loop** — Every code change verified by `run_advanced_code_analysis` before moving on
-- **Graceful degradation** — Skills work even when MCP is down
-
---------
-
-## Appendix: Agent & Skill Reference
-
-### Agents (.claude/agents/)
-
-| Agent | Purpose | Key Tools |
-|-------|---------|-----------|
-| `attack-surface-mapper` | Map public FastAPI routes and React page entries | `search_by_signature_patterns`, `get_current_architecture` |
-| `vulnerability-correlator` | Inventory vulns + SCA risks + hotspots with CWE | `search_sonar_issues_in_projects`, `search_dependency_risks`, `show_rule` |
-| `data-flow-tracer` | Trace call-path reachability | `get_upstream/downstream_call_flow` |
-| `health-analyzer` | Comprehensive health: metrics, coverage, duplication, issue concentration | `get_component_measures`, `get_project_quality_gate_status` |
-| `metrics-analyzer` | Lightweight metrics dashboard | `get_component_measures`, `get_project_quality_gate_status` |
-| `debt-hotspot-finder` | Top files by bug/code-smell density | `search_sonar_issues_in_projects`, `get_source_code` |
-| `blast-radius-tracer` | Map upstream callers and dependency impact | `get_upstream_call_flow`, `get_references` |
-| `architecture-analyzer` | Check module compliance against constraints | `get_current/intended_architecture`, `get_references` |
-| `issue-fixer` | Fix a single issue with full AC/DC loop | `get_guidelines`, `show_rule`, `run_advanced_code_analysis`, `Read`, `Edit` |
-
-### Skills
-
-| Skill | Tier | AC/DC | Agents | Pattern |
-|-------|------|-------|--------|---------|
-| `/sonar-fix` | AI-Assisted | G+G+V | `issue-fixer` | Single delegation |
-| `/pre-push-review` | Guardrails | V | (none) | Direct MCP calls |
-| `/sonar-audit` | Guardrails | G+V | (none) | Flat skill |
-| `/sonar-blitz` | Autonomous | All | `issue-fixer` ×N | Parallel fan-out |
-| `/arch-guard` | Autonomous | G+V | `architecture-analyzer` | Single delegation |
-| `/tech-debt-sprint` | Autonomous | G | `metrics-analyzer` + `debt-hotspot-finder` → `blast-radius-tracer` | Two-wave |
-| `/security-posture` | Custom Agent | All | `attack-surface-mapper` + `vulnerability-correlator` → `data-flow-tracer` | Two-wave |
-| `/sonar-onboard` | Autonomous | G | `architecture-analyzer` + `health-analyzer` + `debt-hotspot-finder` | Parallel fan-out |
+See [DEMO_APPENDIX.md](DEMO_APPENDIX.md) — agent anatomy, skill/agent patterns, enterprise best practices, and the full inventory.

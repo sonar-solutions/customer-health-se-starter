@@ -83,7 +83,7 @@ QUALITY STANDARDS (from health-analyzer + CLAUDE.md)
 
   Development workflow:
     - Before editing: call get_guidelines
-    - After editing: call run_advanced_code_analysis
+    - After editing: run `sonar verify --file <path>`
     - Before committing: check quality gate
 
 CURRENT STATE (from debt-hotspot-finder)

@@ -32,9 +32,6 @@ jobs:
       - name: Run tests with coverage
         run: pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
 
-      - name: Check architecture (import-linter)
-        run: lint-imports
-
       - name: Upload coverage report
         uses: actions/upload-artifact@v7
         with:
@@ -60,9 +57,6 @@ jobs:
 
       - name: Run tests with coverage
         run: npx vitest run --coverage
-
-      - name: Check architecture (dependency-cruiser)
-        run: npx depcruise src --config .dependency-cruiser.cjs
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v7

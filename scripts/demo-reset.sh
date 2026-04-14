@@ -1,16 +1,33 @@
 #!/bin/bash
 # demo-reset.sh — Restore demo-ready state between demos
-# Usage: bash scripts/demo-reset.sh
+# Usage: bash scripts/demo-reset.sh [--se <name>]
 #
 # What this does:
 #   1. Warns if uncommitted changes will be discarded
 #   2. Resets to clean origin/main
 #   3. Reports which intentional issues are present (no injection needed —
 #      violations live permanently on main)
+#   4. (--se) Resets the live-push branch for the given SE, closes/reopens PR
 #
 # After running: open a fresh Claude Code session
 
 set -e
+
+# Parse --se flag
+SE_NAME=""
+ARGS=("$@")
+i=0
+while [[ $i -lt ${#ARGS[@]} ]]; do
+  if [[ "${ARGS[$i]}" == "--se" ]]; then
+    SE_NAME=$(echo "${ARGS[$((i+1))]}" | tr '[:upper:]' '[:lower:]')
+    i=$((i+2))
+  else
+    i=$((i+1))
+  fi
+done
+if [[ -z "$SE_NAME" ]]; then
+  SE_NAME=$(GITHUB_TOKEN="" gh api /user --jq '.login' 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)
+fi
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
@@ -44,8 +61,11 @@ echo "  frontend/package.json                     — lodash@4.17.10            
 
 echo ""
 echo "Demo branches:"
-echo "  demo/bad-state   — export endpoint with path traversal vuln (PR #1 open)"
-echo "  demo/fixed-state — all issues resolved, quality gate passing"
+echo "  demo/bad-state             — path traversal vuln, PR open, locked (cannot merge)"
+echo "  demo/fixed-state           — all issues resolved, quality gate passing"
+if [[ -n "$SE_NAME" ]]; then
+  echo "  demo/live-push-${SE_NAME}  — arch violation ready, PR open, quality gate will fail on push"
+fi
 
 echo ""
 echo "Marking intentional issue files as modified for /pre-push-review..."
@@ -60,3 +80,43 @@ echo ""
 echo "Reset complete."
 echo "Open a fresh Claude Code session — the SessionStart hook will surface live issue counts."
 echo "Then run: /pre-push-review"
+
+# Lock demo/bad-state (idempotent)
+REPO=$(GITHUB_TOKEN="" gh repo view --json nameWithOwner --jq '.nameWithOwner' 2>/dev/null || true)
+if [[ -n "$REPO" ]]; then
+  echo ""
+  echo "Locking demo/bad-state..."
+  GITHUB_TOKEN="" gh api \
+    "repos/${REPO}/branches/demo%2Fbad-state/protection" \
+    --method PUT \
+    --field 'lock_branch=true' \
+    --field 'enforce_admins=false' \
+    --raw-field 'required_status_checks=null' \
+    --raw-field 'required_pull_request_reviews=null' \
+    --raw-field 'restrictions=null' 2>/dev/null || true
+fi
+
+# Reset live-push branch (only if SE name resolved)
+if [[ -n "$SE_NAME" ]]; then
+  LIVE_BRANCH="demo/live-push-${SE_NAME}"
+  echo ""
+  echo "Resetting live-push branch for SE: $SE_NAME..."
+
+  # Close open PR if any
+  GITHUB_TOKEN="" gh pr close "$LIVE_BRANCH" --comment "Reset for next demo" 2>/dev/null || true
+
+  # Force-push branch back to violation commit
+  git push origin "refs/tags/demo/live-push-base:refs/heads/${LIVE_BRANCH}" --force 2>/dev/null || {
+    echo "  Warning: could not force-push ${LIVE_BRANCH} (tag demo/live-push-base may be missing)"
+  }
+
+  # Open fresh PR
+  GITHUB_TOKEN="" gh pr create \
+    --head "$LIVE_BRANCH" \
+    --base main \
+    --title "Add score refresh to ScoreCard" \
+    --body "Adds direct API access to ScoreCard component." 2>/dev/null || true
+
+  echo "Live-push branch ready: ${LIVE_BRANCH}"
+  echo "Checkout and push when ready to demo /sonar-watch + /arch-guard"
+fi

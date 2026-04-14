@@ -7,20 +7,17 @@
 
 ## Project Overview
 FE/BE monorepo: FastAPI backend (Python) + React/TypeScript frontend.
-Demo project for the SonarQube MCP + CLI tool suite — intentional issues are present in `main` branch.
+Demo project for the SonarQube MCP + CLI tool suite — `main` branch contains a realistic issue mix across Python and TypeScript.
 
 ## Mandatory SonarQube Workflow
 
 ### Before editing any file
-1. Call `get_guidelines` with `mode: "project_based"` — get rules derived from this project's issue history
+1. Call `get_guidelines` with `file_paths: [<file you're about to edit>]` — gets rules derived from actual violations in that file
 2. Call `show_rule` on any CRITICAL or BLOCKER rules before touching related code
 
 ### After writing or modifying a file
-1. Call `run_advanced_code_analysis` with the file content — real-time CI-quality analysis
-2. Treat any new findings as blocking — fix before moving on
+1. Treat any `sonar verify` findings as blocking — fix them, or ask the user if they should be marked as false positive. Use `change_sonar_issue_status` with `falsepositive` to mark them if confirmed
 
-### Before any commit
-1. Call `get_project_quality_gate_status` to confirm the gate is still passing
 
 ### Before changing architecture
 1. Call `get_current_architecture` to understand the structure
@@ -103,7 +100,7 @@ sonar-scanner \
 | `data-flow-tracer` | Trace call-path reachability | `get_upstream/downstream_call_flow` |
 | `architecture-analyzer` | Check module compliance against constraints | `get_current/intended_architecture`, `get_references` |
 | `blast-radius-tracer` | Map upstream callers and dependency impact | `get_upstream_call_flow`, `get_references` |
-| `issue-fixer` | Fix a single issue with full AC/DC loop | `get_guidelines`, `show_rule`, `run_advanced_code_analysis` |
+| `issue-fixer` | Fix a single issue with full AC/DC loop | `get_guidelines`, `show_rule`, `sonar verify` (CLI) |
 | `health-analyzer` | Comprehensive health: metrics, coverage gaps, duplication, issue concentration | `get_component_measures`, `get_project_quality_gate_status`, `search_sonar_issues_in_projects` |
 | `metrics-analyzer` | Lightweight metrics dashboard | `get_component_measures`, `get_project_quality_gate_status` |
 | `debt-hotspot-finder` | Top files by bug/code-smell density | `search_sonar_issues_in_projects`, `get_source_code` |
@@ -121,8 +118,8 @@ sonar-scanner \
 - `search_by_body_patterns` — find code by implementation patterns
 - `get_source_code` — get complete source by fully qualified name
 
-### Agentic Analysis
-- `run_advanced_code_analysis` — real-time CI-quality analysis on a file (use after every edit)
+### Agentic Analysis (SonarQube CLI)
+- `sonar verify --file <path>` — real-time CI-quality analysis on a file (use after every edit, runs via CLI not MCP)
 
 ### Standard Tools
 - `search_sonar_issues_in_projects` — list open issues

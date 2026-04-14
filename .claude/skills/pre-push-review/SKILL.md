@@ -7,7 +7,6 @@ description: >
 tools:
   - Bash
   - Read
-  - mcp__sonarqube__run_advanced_code_analysis
   - mcp__sonarqube__search_sonar_issues_in_projects
 ---
 
@@ -61,14 +60,10 @@ Cannot run pre-push review without a SonarQube project key.
 
 For each code file identified in step 1:
 
-1. Read the file content using the Read tool.
+1. Read the file content using the Read tool to confirm it exists and is a valid code file.
 2. If the file is too large to read (Read tool returns an error or the file exceeds a reasonable limit), skip it and record it in a "skipped files" list with the reason.
-3. Call `mcp__sonarqube__run_advanced_code_analysis` with:
-   - `projectKey`: the project key from step 3
-   - `branchName`: the current branch name from step 2
-   - `filePath`: the relative file path
-   - `fileContent`: the full file content
-4. Collect all issues returned. If the call returns an error for a specific file, record the error and continue analyzing the remaining files — do not abort the entire review.
+3. Run `sonar verify --file <relative-file-path> --branch <branch-name> --project <project-key>` via Bash.
+4. Collect all issues returned. If the command returns an error for a specific file, record the error and continue analyzing the remaining files — do not abort the entire review.
 
 ### 5. Aggregate and categorize issues
 
@@ -127,9 +122,9 @@ Update the verdict based on what was found:
 - Only MINOR / INFO issues: `Verdict: Safe to push. Minor issues noted above for awareness.`
 - No issues: `Verdict: Safe to push.`
 
-### 7. Fallback if SonarQube MCP is unavailable
+### 7. Fallback if SonarQube CLI is unavailable
 
-If the `mcp__sonarqube__run_advanced_code_analysis` tool call fails or is not available at all, fall back to a manual review:
+If `sonar verify` fails or the `sonar` CLI is not installed, fall back to a manual review:
 
 1. Run `git diff HEAD` to get the full diff of changed files.
 2. Scan the diff manually for the most common SonarQube issue patterns:
@@ -142,7 +137,7 @@ If the `mcp__sonarqube__run_advanced_code_analysis` tool call fails or is not av
 4. Prepend the report with a prominent notice:
 
 ```
-NOTE: SonarQube MCP was unavailable. This is a degraded manual review —
+NOTE: SonarQube CLI was unavailable. This is a degraded manual review —
 it does not replace a real SonarQube scan. Push with awareness that
 automated analysis was not performed.
 ```

@@ -253,12 +253,13 @@ Validates:
 
 > See **C4** for a live push that triggers this constraint in CI.
 
-### C4 — Outer Loop: Live Push + Arch Violation
+### C4 — Outer Loop: Live Push + Quality Gate Failure
 
 **Pre-demo:** Run `bash scripts/demo-reset.sh` to reset the branch (auto-detects your GitHub username).
 
-Check out `demo/live-push-<yourname>`. Show `frontend/src/services/api.ts` — the API service
-re-exports `ScoreCard` directly from the component layer, mixing UI concerns into the data layer.
+Check out `demo/live-push-<yourname>`. Show `frontend/src/services/api.ts` — the commit adds two
+problems: a code style issue (`account && account.projectKey` should use optional chaining) AND
+an architecture violation (the services layer imports from the component layer).
 
 Run `sonar verify` on the file first:
 
@@ -266,8 +267,10 @@ Run `sonar verify` on the file first:
 sonar verify --file frontend/src/services/api.ts --project sonar-solutions_Health-Dashboard
 ```
 
-> "The inner loop sees nothing — sonar verify analyses this file in isolation. It can't
-> see the full import graph. This is exactly the gap the outer loop fills."
+> "sonar verify catches the optional-chain code smell — that's the inner loop working. But notice
+> what it doesn't flag: the import from `../components`. Importing a UI component into the
+> services layer violates the intended architecture. sonar verify analyses this file in isolation —
+> it can't see the full dependency graph. That's the gap the outer loop fills."
 
 Now push:
 
@@ -284,20 +287,21 @@ Once CI completes (~2 min), run `/sonar-watch`:
 ```
 SONAR WATCH — PR #2: Add score refresh to ScoreCard
 =====================================================
-CI:           PASSED
+CI:           PASSED  (tests: backend ✓  frontend ✓)
 Quality Gate: FAILED
-  new_maintainability_rating: C (expected A)
+  new_major_violations: 1 (threshold: 0)
 
 NEXT STEPS
-  /arch-guard   ← investigate the architecture violation
+  /arch-guard   ← investigate the full picture
 ```
 
-Run `/arch-guard` to surface the exact constraint breach using SonarQube's architecture graph.
+Run `/arch-guard` to surface the architecture constraint breach using SonarQube's dependency graph.
 
-> "Two enforcement layers, two different classes of problem. Hooks catch secrets before they're
-> committed. sonar verify catches code quality issues in real time. The quality gate catches
-> architectural drift that only appears when the full project graph is analyzed.
-> The inner loop is fast — the outer loop is complete."
+> "Two problems in one commit. sonar verify caught the code smell but missed the architecture
+> violation — it only sees one file. The quality gate caught the code smell through CI. And
+> /arch-guard revealed what even the quality gate can't: the services layer importing from
+> components is forbidden by our intended architecture. Three layers of enforcement, each
+> catching what the previous one missed."
 
 **Track C close:**
 

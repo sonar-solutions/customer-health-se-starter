@@ -5,6 +5,9 @@ based on quality gate status, scan recency, tier, and onboarding age.
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional
+from app.api.accounts import router as accounts_router
+
+ACCOUNTS_PREFIX = accounts_router.prefix or "/accounts"
 
 
 @dataclass

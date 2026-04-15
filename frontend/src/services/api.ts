@@ -1,12 +1,9 @@
 import axios from 'axios'
 import type { Account, AccountCreate, AccountUpdate, ScoreRefreshResult } from '../types'
-import { ScoreCard } from '../components'
-export const scoreCardRef = { component: ScoreCard }
+import { ScoreCard } from '../components/ScoreCard'
 
-export function buildScoreCardUrl(account?: { id: number; projectKey: string }): string {
-  return account && account.projectKey
-    ? `/api/scores/${account.projectKey}`
-    : '/api/scores'
+export function getDefaultComponent() {
+  return ScoreCard
 }
 
 const BASE_URL = '/api'

@@ -222,15 +222,29 @@ This delegates to the `issue-fixer` agent, which runs the full AC/DC loop on the
 
 ### C1 — Multi-Issue Blitz
 
+**Before showing:** *"When your quality gate fails today — who fixes it, and how long does it sit before someone gets to it? Does that change when AI is writing the code and the volume goes up?"*
+
+Let them answer. The pain is either the fix backlog (issues accumulating faster than the team can clear them) or the opportunity cost (senior engineers doing routine remediation). Then:
+
+*"Let me show you what it looks like when the fix cycle is autonomous."*
+
 ```
 /sonar-blitz
 ```
 
-This fans out parallel `issue-fixer` agents — one per affected file. With 4-5 files having issues (both Python and TypeScript), you'll see multiple agents working simultaneously.
+This fans out parallel `issue-fixer` agents — one per affected file. Watch multiple agents working simultaneously across Python and TypeScript.
 
-> "Each agent runs the full AC/DC loop independently. The orchestrator collects results and
-> reports which issues were fixed, which need human review. Ten minutes of autonomous work
-> compressed into one command."
+> "Each agent runs the full AC/DC loop independently — get guidelines, generate the fix,
+> verify it doesn't introduce new issues. The orchestrator collects results and surfaces
+> what was fixed and what needs human review."
+
+Point to the verify step specifically:
+
+> "This is the part that matters. The agent doesn't just fix — it checks its own work against
+> SonarQube before committing. It won't ship a fix that introduces a new BLOCKER. That's what
+> separates autonomous remediation from 'Claude wrote some code and we hoped for the best.'"
+
+**Connect to SQRA:** This is the same pattern as the SonarQube Remediation Agent in production — autonomous fix, verify, close. `/sonar-blitz` is the Claude Code implementation; SQRA is the native product version that runs on PRs and main branch automatically. If the audience is on Enterprise, this is already available to them in open beta.
 
 ### C2 — Tech Debt Sprint
 

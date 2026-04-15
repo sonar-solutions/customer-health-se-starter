@@ -8,13 +8,14 @@ tools:
   - Bash
   - Read
   - mcp__sonarqube__search_sonar_issues_in_projects
+  - mcp__sonarqube__get_intended_architecture
 ---
 
 # /pre-push-review — Pre-Push SonarQube Analysis
 
-Runs SonarQube analysis on files changed in the current branch before pushing, catching issues that would otherwise require multiple push-fix cycles.
+Runs SonarQube analysis on files changed in the current branch before pushing, catching issues that would otherwise require multiple push-fix cycles. Also checks for architecture violations using the project's intended architecture constraints.
 
-Background: Without this, SonarQube feedback only comes after pushing and waiting for CI, requiring separate commit+push cycles per round of feedback. This skill catches most issues in the same session.
+Background: Without this, SonarQube feedback only comes after pushing and waiting for CI, requiring separate commit+push cycles per round of feedback. This skill catches most issues in the same session. Architecture violations in particular are invisible to `sonar verify` (single-file scope) but are caught here via static import analysis against the defined constraints.
 
 ## Steps
 
@@ -56,18 +57,46 @@ If the user does not provide a project key, stop gracefully with:
 Cannot run pre-push review without a SonarQube project key.
 ```
 
-### 4. Analyze each changed file
+### 4. Check architecture constraints
+
+Call `get_intended_architecture`. If it returns constraints (non-empty), proceed with architecture checking. If empty or unavailable, skip this step silently.
+
+For each changed code file:
+
+1. Read the file content.
+2. Extract all import/require statements.
+3. For each import that uses a **relative path** (starts with `./` or `../`):
+   - Resolve the import to a project-relative path using the importing file's location.
+   - Match the importing file and the resolved target against the constraint patterns.
+   - If the dependency is not in the allowed list and the policy is `deny_by_default`, flag it as a MAJOR architecture violation.
+4. Skip imports using path aliases (e.g., `@/`, `~`) — note them as unresolved if any are found.
+
+**Matching rules:**
+- Constraints use glob patterns with `**` as wildcard and `:`, `.`, `/` as separators.
+- A file at `frontend/src/services/api.ts` matches pattern `frontend/src/services/**`.
+- An import resolving to `frontend/src/components/ScoreCard.tsx` matches `frontend/src/components/**`.
+- If no constraint allows `services/**` → `components/**` and policy is `deny_by_default`, it's a violation.
+
+**Flag violations as:**
+```
+MAJOR — <importing-file>:<line> — Architecture violation: <importing-layer> → <target-layer> not allowed [tsarchitecture:S7788]
+```
+Use `tsarchitecture:S7788` for TypeScript/JavaScript files, `pythonarchitecture:S7788` for Python files.
+
+Architecture violations are **deterministic** for standard relative imports — this is rule application, not inference. Path aliases are skipped (potential false negatives, not false positives).
+
+### 5. Analyze each changed file with sonar verify
 
 For each code file identified in step 1:
 
 1. Read the file content using the Read tool to confirm it exists and is a valid code file.
-2. If the file is too large to read (Read tool returns an error or the file exceeds a reasonable limit), skip it and record it in a "skipped files" list with the reason.
+2. If the file is too large to read, skip it and record it in a "skipped files" list with the reason.
 3. Run `sonar verify --file <relative-file-path> --branch <branch-name> --project <project-key>` via Bash.
-4. Collect all issues returned. If the command returns an error for a specific file, record the error and continue analyzing the remaining files — do not abort the entire review.
+4. Collect all issues returned. If the command returns an error for a specific file, record the error and continue — do not abort the entire review.
 
-### 5. Aggregate and categorize issues
+### 6. Aggregate and categorize issues
 
-Sort all collected issues into severity tiers:
+Merge all issues from steps 4 and 5. Sort into severity tiers:
 
 | Tier | Severities | Action |
 |------|-----------|--------|
@@ -75,7 +104,7 @@ Sort all collected issues into severity tiers:
 | MAJOR | MAJOR | Should fix; warn prominently |
 | MINOR / INFO | MINOR, INFO | Informational; do not block |
 
-### 6. Report results
+### 7. Report results
 
 **If no issues found:**
 
@@ -96,6 +125,7 @@ BLOCKER (must fix before pushing):
 - src/auth.py:42 — Hardcoded credential [python:S2068]
 
 MAJOR (should fix):
+- frontend/src/services/api.ts:3 — Architecture violation: services → components not allowed [tsarchitecture:S7788]
 - src/utils.py:15 — Cognitive complexity too high [python:S3776]
 
 MINOR:
@@ -104,17 +134,14 @@ MINOR:
 Verdict: DO NOT PUSH until BLOCKER issues are resolved.
 ```
 
+If there are unresolved path aliases, append:
+```
+Note: <N> path-alias import(s) not checked for architecture violations (tsconfig aliases not resolved).
+```
+
 If there are no issues in a severity tier, omit that section entirely.
 
-If there are skipped files or per-file errors, append them at the end:
-
-```
-Skipped (too large):
-- src/generated/big_file.py
-
-Errors during analysis:
-- src/legacy.py — SonarQube returned: <error message>
-```
+If there are skipped files or per-file errors, append them at the end.
 
 Update the verdict based on what was found:
 - BLOCKER or CRITICAL issues present: `Verdict: DO NOT PUSH until BLOCKER issues are resolved.`
@@ -122,7 +149,7 @@ Update the verdict based on what was found:
 - Only MINOR / INFO issues: `Verdict: Safe to push. Minor issues noted above for awareness.`
 - No issues: `Verdict: Safe to push.`
 
-### 7. Fallback if SonarQube CLI is unavailable
+### 8. Fallback if SonarQube CLI is unavailable
 
 If `sonar verify` fails or the `sonar` CLI is not installed, fall back to a manual review:
 
@@ -133,11 +160,11 @@ If `sonar verify` fails or the `sonar` CLI is not installed, fall back to a manu
    - TODO / FIXME / HACK comments
    - Overly long methods or deeply nested blocks
    - Missing null/error checks in critical paths
-3. Report any findings in the same format as step 6.
-4. Prepend the report with a prominent notice:
+3. Still perform the architecture check from step 4 (it uses MCP, not the CLI).
+4. Report any findings in the same format as step 7.
+5. Prepend the report with a prominent notice:
 
 ```
 NOTE: SonarQube CLI was unavailable. This is a degraded manual review —
-it does not replace a real SonarQube scan. Push with awareness that
-automated analysis was not performed.
+it does not replace a real SonarQube scan. Architecture check was still performed.
 ```

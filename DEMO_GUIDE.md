@@ -185,16 +185,15 @@ Watch whether Claude generates with `headers={"Authorization": f"Bearer {token}"
 
 ### B3 — Verify Phase
 
-After generation:
+Don't prompt for this — it will already be running. After B2 generates code, Claude automatically runs `sonar verify` on the edited file without being asked.
 
-```
-Run advanced code analysis on the file you just edited.
-```
+Point to it as it happens:
 
-Claude runs `sonar verify` via the SonarQube CLI — same analysis engine as CI, running in real time.
+> "I didn't ask for that. Claude ran `sonar verify` automatically because `.claude/CLAUDE.md`
+> mandates it after every file edit — it's not a suggestion, it's a rule every developer
+> inherits when they clone this repo. The verify step is structural, not optional."
 
-> "We're verifying inside the agentic loop — not waiting for CI. The outer loop becomes a
-> backstop, not the first line of defense."
+If the audience asks how: open CLAUDE.md and point to the **Mandatory SonarQube Workflow** section — specifically *"After writing or modifying a file: run sonar verify."* That one line is what enforced this.
 
 ### B4 — Solve Phase: Fix a Real Issue
 

@@ -185,15 +185,16 @@ Watch whether Claude generates with `headers={"Authorization": f"Bearer {token}"
 
 ### B3 — Verify Phase
 
-Don't prompt for this — it will already be running. After B2 generates code, Claude automatically runs `sonar verify` on the edited file without being asked.
+Don't prompt for this — `sonar verify` already ran. The `PostToolUse` hook (`.claude/hooks/posttool-sqaa.sh`) fires on every `Edit` or `Write` tool call automatically.
 
-Point to it as it happens:
+**Make this moment explicit.** Point to the analysis result in the session and open `.claude/settings.json` to show the `PostToolUse` → `Edit|Write` matcher:
 
-> "I didn't ask for that. Claude ran `sonar verify` automatically because `.claude/CLAUDE.md`
-> mandates it after every file edit — it's not a suggestion, it's a rule every developer
-> inherits when they clone this repo. The verify step is structural, not optional."
+> "This is the key point. sonar verify didn't run because Claude decided to check its work —
+> it ran because a hook forced it to. Every file edit triggers analysis automatically,
+> regardless of what the AI was asked to do. The developer can't skip it, the AI can't skip it.
+> That's the difference between a suggestion and a guarantee."
 
-If the audience asks how: open CLAUDE.md and point to the **Mandatory SonarQube Workflow** section — specifically *"After writing or modifying a file: run sonar verify."* That one line is what enforced this.
+This is committed to the repo. Every developer who clones it gets the same deterministic enforcement — no tribal knowledge, no AI discretion required.
 
 ### B4 — Solve Phase: Fix a Real Issue
 

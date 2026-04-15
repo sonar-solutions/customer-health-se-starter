@@ -83,7 +83,14 @@ MAJOR — <importing-file>:<line> — Architecture violation: <importing-layer> 
 ```
 Use `tsarchitecture:S7788` for TypeScript/JavaScript files, `pythonarchitecture:S7788` for Python files.
 
-Architecture violations are **deterministic** for standard relative imports — this is rule application, not inference. Path aliases are skipped (potential false negatives, not false positives).
+**Important:** This is Claude reasoning over import statements and constraint rules — not a compiled analysis engine. For simple relative imports and clear constraints it is highly reliable, but it is not guaranteed by a deterministic algorithm and no SonarQube issue is created. Flag violations in the report as:
+
+```
+MAJOR (static analysis — verify before treating as blocking):
+- frontend/src/services/api.ts:3 — Architecture violation: services → components not allowed [tsarchitecture:S7788]
+```
+
+Path aliases are skipped (potential false negatives, not false positives).
 
 ### 5. Analyze each changed file with sonar verify
 

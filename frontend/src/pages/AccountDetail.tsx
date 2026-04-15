@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-// page component
 import { accountsApi } from '../services/api'
 import { useHealthScore } from '../hooks/useHealthScore'
 import { MetricBadge } from '../components/MetricBadge'

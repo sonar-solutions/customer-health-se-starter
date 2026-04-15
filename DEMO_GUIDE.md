@@ -287,9 +287,15 @@ Validates:
 
 ### C4 — Outer Loop: Live Push + Arch Violation
 
-**Pre-demo:** Run `bash scripts/demo-reset.sh` to reset the branch (auto-detects your GitHub username).
+**Pre-demo:** `bash scripts/demo-reset.sh` — closes any open PR on the live-push branch and resets it to the violation commit.
 
-Check out `demo/live-push-<yourname>`. Show the two changed files:
+Check out the branch:
+
+```
+git checkout demo/live-push-<yourname>
+```
+
+Show the two changed files:
 - `frontend/src/services/api.ts` — API service imports `ScoreCard` from the component layer
 - `backend/app/services/scoring.py` — scoring service imports from the API layer
 

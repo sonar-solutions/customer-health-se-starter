@@ -96,13 +96,7 @@ if [[ -n "$SE_NAME" ]]; then
     echo "  Warning: could not force-push ${LIVE_BRANCH} (tag demo/live-push-base may be missing)"
   }
 
-  # Open fresh PR
-  GITHUB_TOKEN="" gh pr create \
-    --head "$LIVE_BRANCH" \
-    --base main \
-    --title "Add score refresh to ScoreCard" \
-    --body "Adds direct API access to ScoreCard component." 2>/dev/null || true
-
   echo "Live-push branch ready: ${LIVE_BRANCH}"
-  echo "Checkout and push when ready to demo /sonar-watch + /arch-guard"
+  echo "During the demo: git checkout ${LIVE_BRANCH} && git push origin ${LIVE_BRANCH}"
+  echo "Then open a PR and run /sonar-watch once CI completes."
 fi

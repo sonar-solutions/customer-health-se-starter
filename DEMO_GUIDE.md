@@ -302,13 +302,21 @@ sonar verify --file frontend/src/services/api.ts --project sonar-solutions_Healt
 > "The inner loop sees nothing — sonar verify analyses this file in isolation. It can't
 > see the full import graph. This is exactly the gap the outer loop fills."
 
-Now push:
+Now push and open the PR:
 
 ```
 git push origin demo/live-push-<yourname>
 ```
 
-The `posttool-push-watch.sh` hook fires:
+```
+GITHUB_TOKEN="" gh pr create \
+  --head demo/live-push-<yourname> \
+  --base main \
+  --title "Add score refresh to ScoreCard" \
+  --body "Adds direct API access to ScoreCard component."
+```
+
+The `posttool-push-watch.sh` hook fires on the push:
 
 > "git push detected — SonarQube CI check running on PR. Invoke /sonar-watch when CI completes."
 

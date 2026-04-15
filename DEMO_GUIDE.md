@@ -253,24 +253,22 @@ Validates:
 
 > See **C4** for a live push that triggers this constraint in CI.
 
-### C4 — Outer Loop: Live Push + Quality Gate Failure
+### C4 — Outer Loop: Live Push + Arch Violation
 
 **Pre-demo:** Run `bash scripts/demo-reset.sh` to reset the branch (auto-detects your GitHub username).
 
-Check out `demo/live-push-<yourname>`. Show `frontend/src/services/api.ts` — the commit adds two
-problems: a code style issue (`account && account.projectKey` should use optional chaining) AND
-an architecture violation (the services layer imports from the component layer).
+Check out `demo/live-push-<yourname>`. Show the two changed files:
+- `frontend/src/services/api.ts` — API service imports `ScoreCard` from the component layer
+- `backend/app/services/scoring.py` — scoring service imports from the API layer
 
-Run `sonar verify` on the file first:
+Run `sonar verify` on `api.ts` first:
 
 ```
 sonar verify --file frontend/src/services/api.ts --project sonar-solutions_Health-Dashboard
 ```
 
-> "sonar verify catches the optional-chain code smell — that's the inner loop working. But notice
-> what it doesn't flag: the import from `../components`. Importing a UI component into the
-> services layer violates the intended architecture. sonar verify analyses this file in isolation —
-> it can't see the full dependency graph. That's the gap the outer loop fills."
+> "The inner loop sees nothing — sonar verify analyses this file in isolation. It can't
+> see the full import graph. This is exactly the gap the outer loop fills."
 
 Now push:
 
@@ -285,23 +283,28 @@ The `posttool-push-watch.sh` hook fires:
 Once CI completes (~2 min), run `/sonar-watch`:
 
 ```
-SONAR WATCH — PR #2: Add score refresh to ScoreCard
-=====================================================
-CI:           PASSED  (tests: backend ✓  frontend ✓)
+SONAR WATCH — PR #<N>: Add score refresh to ScoreCard
+=======================================================
+CI:           PASSED
 Quality Gate: FAILED
-  new_major_violations: 1 (threshold: 0)
+  new_maintainability_rating: C (expected A)
+  new_major_violations: 2 (threshold: 0)
+
+NEW ISSUES ON THIS PR
+  MAJOR: 2
+
+  1. [MAJOR] frontend/src/services/api.ts:1 — Remove disallowed relationships to "ScoreCard.tsx" [tsarchitecture:S7788]
+  2. [MAJOR] backend/app/services/scoring.py:1 — Remove disallowed relationships to "accounts.py" [pythonarchitecture:S7788]
 
 NEXT STEPS
-  /arch-guard   ← investigate the full picture
+  /arch-guard   ← investigate the architecture violations
 ```
 
-Run `/arch-guard` to surface the architecture constraint breach using SonarQube's dependency graph.
+Run `/arch-guard` to surface both constraint breaches using SonarQube's architecture graph.
 
-> "Two problems in one commit. sonar verify caught the code smell but missed the architecture
-> violation — it only sees one file. The quality gate caught the code smell through CI. And
-> /arch-guard revealed what even the quality gate can't: the services layer importing from
-> components is forbidden by our intended architecture. Three layers of enforcement, each
-> catching what the previous one missed."
+> "Two languages, two violations, one constraint model. sonar verify is fast but sees one
+> file at a time. The quality gate sees the whole graph — and catches what the inner loop
+> can't. That's the outer loop."
 
 **Track C close:**
 

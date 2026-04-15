@@ -372,38 +372,12 @@ Open `.claude/agents/vulnerability-correlator.md` and walk through the structure
 
 Show the agent inventory table from `.claude/CLAUDE.md`.
 
-### D4 — Skills vs. Agents: Why Both?
-
-> "You might wonder: why have both skills and agents? Why not just use one?"
-
-Walk through the three patterns in this project:
-
-| Pattern | Example | When to use |
-|---------|---------|-------------|
-| **Skill (inline)** | `/sonar-audit`, `/pre-push-review` | Simple workflows — sequential MCP calls, no need for isolation or parallelism |
-| **Skill → 1 agent** | `/sonar-fix`, `/arch-guard` | Need tool restrictions (e.g., isolate edit/bash capability) or context isolation |
-| **Skill → N agents** | `/security-posture`, `/sonar-blitz` | Multi-specialist workflows — parallel execution, wave orchestration, result synthesis |
-
-**Three reasons skills delegate to agents:**
-
-1. **Tool restrictions** — `attack-surface-mapper` can only search and read. `issue-fixer` can edit files and run bash. The skill orchestrates; agents are sandboxed to their capabilities.
-2. **Context isolation** — each agent gets a fresh context window. A 3-agent security assessment would bloat the main conversation with all intermediate search results. Agents keep that noise out.
-3. **Parallelism** — agents run concurrently. `/security-posture` runs attack-surface-mapper and vulnerability-correlator simultaneously in wave 1, then feeds both results to data-flow-tracer in wave 2.
-
-**Three reasons skills exist on top of agents:**
-
-1. **Orchestration** — agents are single-responsibility; skills compose them into multi-step workflows with wave ordering.
-2. **Discoverability** — `/security-posture` shows up in tab-completion. Agents don't.
-3. **Synthesis** — the skill tells Claude how to combine results from multiple agents into a coherent report.
-
-> "Think of it like microservices: agents are the services — small, focused, independently
-> deployable. Skills are the API gateway — routing, orchestration, the developer-facing
-> interface. Both are markdown. Both are committed to the repo."
-
 **Track D close:**
 
 > "Platform team defines agents. Developers invoke skills. Both are version-controlled,
 > PR-reviewable, auditable. This is how you operationalize AI quality standards at scale."
+
+*For a deeper dive on skills vs. agents patterns, see the [Appendix](DEMO_APPENDIX.md).*
 
 --------
 

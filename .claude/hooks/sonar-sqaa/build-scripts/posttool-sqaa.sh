@@ -19,6 +19,13 @@ if [[ -z "$file_path" ]] || [[ ! -f "$file_path" ]]; then
   exit 0
 fi
 
+# Only run on SQAA-supported languages
+ext="${file_path##*.}"
+case "$ext" in
+  py|ts|tsx|js|jsx|java|cs) ;;
+  *) exit 0 ;;
+esac
+
 # Capture SQAA analysis output and pass it to Claude via additionalContext
 output=$(sonar verify --file "$file_path" --project sonar-solutions_Health-Dashboard 2>/dev/null)
 

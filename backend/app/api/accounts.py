@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+# accounts api
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.repositories import account_repo

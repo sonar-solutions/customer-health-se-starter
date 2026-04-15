@@ -1,5 +1,8 @@
 import type { Account } from '../types'
+import type { ScoreRefreshResult } from '../services/api'
 import { MetricBadge } from './MetricBadge'
+
+type _RefreshResult = ScoreRefreshResult
 
 interface ScoreCardProps {
   account: Account

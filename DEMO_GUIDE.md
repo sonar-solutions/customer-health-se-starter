@@ -6,11 +6,20 @@
 
 --------
 
+> **Before every demo — run this first:**
+> ```bash
+> bash scripts/demo-reset.sh
+> ```
+> Safe to run anytime. Resets to clean `origin/main`, restores all 6 intentional issues,
+> and reopens the live-push PR. Will warn before discarding uncommitted changes.
+
+--------
+
 ## Pre-Demo Checklist (15 min before)
 
 - [ ] `sonar --version` passes (CLI on PATH)
 - [ ] `SONAR_TOKEN` set in shell (used by CLI and scan action)
-- [ ] Run `bash scripts/demo-reset.sh` — restores clean main, confirms all 6 issues are present
+- [ ] Run `bash scripts/demo-reset.sh` (see above)
 - [ ] Start a fresh Claude Code session in this repo directory (SessionStart hook fires on open)
 - [ ] Verify hook fired — you should see a status message with live issue counts from SonarQube
 - [ ] Verify SonarQube MCP is connected: `/mcp`

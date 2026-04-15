@@ -11,7 +11,8 @@
 > bash scripts/demo-reset.sh
 > ```
 > Safe to run anytime. Resets to clean `origin/main`, restores all 6 intentional issues,
-> and reopens the live-push PR. Will warn before discarding uncommitted changes.
+> and closes any open live-push PR (you'll open a fresh one live in C4).
+> Will warn before discarding uncommitted changes.
 
 --------
 

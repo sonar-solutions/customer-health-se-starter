@@ -120,6 +120,8 @@ Also demonstrate the PreToolUse hook:
 
 ### A4 — Pre-Push Review
 
+**Before showing:** *"How many push-fix cycles do your developers go through before a PR is clean? Let me show you what it looks like when that feedback arrives before the push instead of after."*
+
 Run `/pre-push-review`.
 
 Expected findings:
@@ -130,8 +132,8 @@ Expected findings:
 - `frontend/src/hooks/useHealthScore.ts` — missing error state / unhandled rejection (Bug)
 - `frontend/package.json` — `lodash@4.17.10` (SCA — CVE-2019-10744)
 
-> "Six findings across Python and TypeScript in one scan — two languages, one quality gate.
-> The verdict: **do not push**. This is what the inner loop catches before CI ever runs."
+> "Six findings across Python and TypeScript before a single line hits CI — bugs, security
+> hotspots, vulnerable dependencies. Two languages, one quality gate. The verdict: **do not push**."
 
 ### A5 — Quick Audit
 

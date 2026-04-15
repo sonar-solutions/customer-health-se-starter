@@ -94,6 +94,13 @@ Open `.claude/CLAUDE.md` and walk through:
 
 ### A3 — Secrets Detection Hook
 
+**Before showing:** Ask one of these depending on audience:
+
+- *Technical / AppSec:* "Our customers love the secrets detection in CI and the IDE — but with AI assistants in the mix, where do you see the new exposure points your current controls don't cover?"
+- *Less technical:* "We hear a lot about two risks with AI assistants — Claude reading a `.env` file, or a developer pasting an API key straight into the prompt. Have either of those come up for your teams?"
+
+Wait for their answer, then: *"Let me show you exactly how we close that gap."*
+
 Type a prompt that includes a fake credential:
 
 ```

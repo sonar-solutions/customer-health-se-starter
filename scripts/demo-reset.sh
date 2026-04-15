@@ -61,7 +61,7 @@ echo "  frontend/package.json                     — lodash@4.17.10            
 
 echo ""
 echo "Demo branches:"
-echo "  demo/bad-state             — path traversal vuln, PR open, locked (cannot merge)"
+echo "  demo/bad-state             — path traversal vuln, PR open (do not merge)"
 echo "  demo/fixed-state           — all issues resolved, quality gate passing"
 if [[ -n "$SE_NAME" ]]; then
   echo "  demo/live-push-${SE_NAME}  — arch violation ready, PR open, quality gate will fail on push"
@@ -81,20 +81,6 @@ echo "Reset complete."
 echo "Open a fresh Claude Code session — the SessionStart hook will surface live issue counts."
 echo "Then run: /pre-push-review"
 
-# Lock demo/bad-state (idempotent)
-REPO=$(GITHUB_TOKEN="" gh repo view --json nameWithOwner --jq '.nameWithOwner' 2>/dev/null || true)
-if [[ -n "$REPO" ]]; then
-  echo ""
-  echo "Locking demo/bad-state..."
-  GITHUB_TOKEN="" gh api \
-    "repos/${REPO}/branches/demo%2Fbad-state/protection" \
-    --method PUT \
-    --field 'lock_branch=true' \
-    --field 'enforce_admins=false' \
-    --raw-field 'required_status_checks=null' \
-    --raw-field 'required_pull_request_reviews=null' \
-    --raw-field 'restrictions=null' 2>/dev/null || true
-fi
 
 # Reset live-push branch (only if SE name resolved)
 if [[ -n "$SE_NAME" ]]; then

@@ -7,12 +7,15 @@ export function useHealthScore(accountId: number) {
   const [loading, setLoading] = useState(false)
 
   const refresh = async () => {
-    setLoading(true)
-    const data = await scoresApi.refresh(accountId)
-    setResult(data)
-    setLoading(false)
+    try {
+      setLoading(true)
+      const data = await scoresApi.refresh(accountId)
+      setResult(data)
+      setLoading(false)
+    } catch (e) {}
   }
 
   return { result, loading, refresh }
 }
+
 

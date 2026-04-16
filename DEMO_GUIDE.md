@@ -135,15 +135,15 @@ Also demonstrate the PreToolUse hook:
 Run `/pre-push-review`.
 
 Expected findings:
-- `backend/app/clients/sonarqube_client.py` — token passed as query parameter (Security Hotspot)
-- `backend/app/services/scoring.py` — cognitive complexity > 15 (Code Smell)
+- `backend/app/clients/sonarqube_client.py` — hardcoded `api_key` constant (Security — `python:S6418`)
+- `backend/app/services/scoring.py` — cognitive complexity > 15 (Code Smell — `python:S3776`)
 - `backend/requirements.txt` — `requests==2.18.4` (SCA — CVE-2018-18074)
-- `frontend/src/services/api.ts` — token stored in localStorage (Security Hotspot)
-- `frontend/src/hooks/useHealthScore.ts` — missing error state / unhandled rejection (Bug)
+- `frontend/src/services/api.ts` — ReDoS-vulnerable regex in `validateProjectKey` (Security — `typescript:S5852`)
+- `frontend/src/hooks/useHealthScore.ts` — empty catch silently swallows errors (Bug — `typescript:S2486`)
 - `frontend/package.json` — `lodash@4.17.10` (SCA — CVE-2019-10744)
 
 > "Six findings across Python and TypeScript before a single line hits CI — bugs, security
-> hotspots, vulnerable dependencies. Two languages, one quality gate. The verdict: **do not push**."
+> issues, vulnerable dependencies. Two languages, one quality gate. The verdict: **do not push**."
 
 ### A5 — Quick Audit
 

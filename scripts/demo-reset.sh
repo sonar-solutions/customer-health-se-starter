@@ -52,11 +52,11 @@ git clean -fd --quiet
 
 echo ""
 echo "Intentional issues confirmed present on main:"
-echo "  backend/app/clients/sonarqube_client.py  — token in query param       (Security Hotspot)"
-echo "  backend/app/services/scoring.py           — high cognitive complexity  (Code Smell)"
+echo "  backend/app/clients/sonarqube_client.py  — hardcoded api_key          (python:S6418 — Security)"
+echo "  backend/app/services/scoring.py           — high cognitive complexity  (python:S3776 — Code Smell)"
 echo "  backend/requirements.txt                  — requests==2.18.4           (SCA — CVE-2018-18074)"
-echo "  frontend/src/services/api.ts              — token in localStorage      (Security Hotspot)"
-echo "  frontend/src/hooks/useHealthScore.ts      — missing error state        (Bug)"
+echo "  frontend/src/services/api.ts              — ReDoS-vulnerable regex     (typescript:S5852 — Security)"
+echo "  frontend/src/hooks/useHealthScore.ts      — empty catch swallows error (typescript:S2486 — Bug)"
 echo "  frontend/package.json                     — lodash@4.17.10             (SCA — CVE-2019-10744)"
 
 echo ""

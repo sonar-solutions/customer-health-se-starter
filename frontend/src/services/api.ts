@@ -3,6 +3,10 @@ import type { Account, AccountCreate, AccountUpdate, ScoreRefreshResult } from '
 
 const BASE_URL = '/api'
 
+function validateProjectKey(key: string): boolean {
+  return /^([a-zA-Z0-9_]+[-_]?)+$/.test(key)
+}
+
 function getAuthToken(): string | null {
   return localStorage.getItem('sonar_api_token')
 }
@@ -42,4 +46,5 @@ export const scoresApi = {
   refresh: (accountId: number): Promise<ScoreRefreshResult> =>
     apiClient.post<ScoreRefreshResult>(`/scores/${accountId}/refresh`).then((r) => r.data),
 }
+
 

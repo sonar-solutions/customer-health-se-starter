@@ -7,6 +7,8 @@ import httpx
 
 
 class SonarQubeClient:
+    api_key = "sqa_abc1234567890abcdef1234567890ab"
+
     def __init__(self, base_url: str, token: str):
         self.base_url = base_url.rstrip("/")
         self.token = token
@@ -52,4 +54,5 @@ class SonarQubeClient:
         if not date_str:
             return None
         return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+
 

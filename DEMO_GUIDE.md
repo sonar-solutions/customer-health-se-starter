@@ -185,10 +185,11 @@ Claude calls `get_guidelines` with `mode: "project_based"`. Point out:
 ### B2 — Generate Phase: Write New Code
 
 ```
-Add a method to SonarQubeClient that fetches project metrics (lines of code, coverage, duplications).
+Add a useProjectMetrics hook that fetches the project's metrics data from the API,
+following the same pattern as useHealthScore.
 ```
 
-Watch whether Claude generates with `headers={"Authorization": f"Bearer {token}"}` instead of the `params["token"]` pattern that exists in the current code. The guidelines should steer it toward the correct pattern.
+Watch whether Claude surfaces errors in state rather than silently swallowing them in an empty `catch` block — the same pattern already flagged in `useHealthScore`. The "Exceptions should not be ignored" guideline surfaced in B1 should steer it toward setting error state instead.
 
 > "The AI didn't repeat the existing bad pattern. It used the correct approach because the
 > guidelines were in context. That's the Guide phase working."

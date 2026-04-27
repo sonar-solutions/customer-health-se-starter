@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Account, AccountCreate, AccountUpdate, ScoreRefreshResult } from '../types'
+import type { Account, AccountCreate, AccountUpdate, ProjectMetrics, ScoreRefreshResult } from '../types'
 
 const BASE_URL = '/api'
 
@@ -46,5 +46,11 @@ export const scoresApi = {
   refresh: (accountId: number): Promise<ScoreRefreshResult> =>
     apiClient.post<ScoreRefreshResult>(`/scores/${accountId}/refresh`).then((r) => r.data),
 }
+
+export const metricsApi = {
+  get: (accountId: number): Promise<ProjectMetrics> =>
+    apiClient.get<ProjectMetrics>(`/metrics/${accountId}`).then((r) => r.data),
+}
+
 
 

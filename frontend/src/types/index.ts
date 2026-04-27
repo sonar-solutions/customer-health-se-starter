@@ -36,3 +36,12 @@ export interface ScoreRefreshResult {
   health_score: number
   quality_gate_status: string
 }
+
+export interface ProjectMetrics {
+  account_id: number
+  bugs: string | null
+  vulnerabilities: string | null
+  code_smells: string | null
+  coverage: string | null
+  duplicated_lines_density: string | null
+}

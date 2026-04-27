@@ -185,8 +185,8 @@ Claude calls `get_guidelines` with `mode: "project_based"`. Point out:
 ### B2 — Generate Phase: Write New Code
 
 ```
-Add a useProjectMetrics hook that fetches the project's metrics data from the API,
-following the same pattern as useHealthScore.
+Add a useProjectMetrics hook in frontend/src/hooks/ that fetches from
+metricsApi.get(accountId) and exposes metrics, loading, and error state.
 ```
 
 Watch whether Claude surfaces errors in state rather than silently swallowing them in an empty `catch` block — the same pattern already flagged in `useHealthScore`. The "Exceptions should not be ignored" guideline surfaced in B1 should steer it toward setting error state instead.

@@ -184,6 +184,9 @@ Claude calls `get_guidelines` with `mode: "project_based"`. Point out:
 
 ### B2 — Generate Phase: Write New Code
 
+Before prompting, show the audience the bad pattern Claude must avoid:
+- `frontend/src/hooks/useHealthScore.ts` — empty `catch` block swallows all errors silently
+
 ```
 Add a useProjectMetrics hook in frontend/src/hooks/ that fetches from
 metricsApi.get(accountId) and exposes metrics, loading, and error state.

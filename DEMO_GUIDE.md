@@ -184,6 +184,8 @@ Claude calls `get_guidelines` with `mode: "project_based"`. Point out:
 
 ### B2 — Generate Phase: Write New Code
 
+**Context for the audience:** React hooks manage async data fetching in the frontend. `useHealthScore` fetches a project's health score and tracks loading and result state — but when the fetch fails, its `catch` block is empty, so the error disappears silently and the UI never knows anything went wrong. We're asking Claude to write a similar hook for raw metrics. The interesting question is whether it copies that silent failure pattern, or whether the guideline steers it to handle errors properly.
+
 Before prompting, show the audience the bad pattern Claude must avoid:
 - `frontend/src/hooks/useHealthScore.ts` — empty `catch` block swallows all errors silently
 

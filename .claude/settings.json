@@ -62,5 +62,12 @@
     "allow": [
       "mcp__sonarqube__*"
     ]
+  },
+  "skillOverrides": {
+    "superpowers:brainstorming": "off",
+    "superpowers:brainstorm": "off"
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": false
   }
 }

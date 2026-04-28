@@ -137,10 +137,10 @@ Run `/pre-push-review`.
 Expected findings:
 - `backend/app/clients/sonarqube_client.py` — hardcoded `api_key` constant (Security — `python:S6418`)
 - `backend/app/services/scoring.py` — cognitive complexity > 15 (Code Smell — `python:S3776`)
-- `backend/requirements.txt` — `requests==2.18.4` (SCA — CVE-2018-18074)
+- `backend/requirements.txt` — `pytest==8.2.0` (SCA — CVE-2025-71176)
 - `frontend/src/services/api.ts` — ReDoS-vulnerable regex in `validateProjectKey` (Security — `typescript:S5852`)
 - `frontend/src/hooks/useHealthScore.ts` — empty catch silently swallows errors (Bug — `typescript:S2486`)
-- `frontend/package.json` — `lodash@4.17.10` (SCA — CVE-2019-10744)
+- `frontend/package.json` — `caniuse-lite@1.0.30001791` (SCA — prohibited license)
 
 > "Six findings across Python and TypeScript before a single line hits CI — bugs, security
 > issues, vulnerable dependencies. Two languages, one quality gate. The verdict: **do not push**."

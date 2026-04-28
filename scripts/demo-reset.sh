@@ -82,6 +82,42 @@ echo "Open a fresh Claude Code session — the SessionStart hook will surface li
 echo "Then run: /pre-push-review"
 
 
+# Clean up stale SonarQube Cloud PR analyses
+echo ""
+echo "Cleaning up stale SonarQube PR analyses..."
+SONAR_HOST="https://sonarcloud.io"
+SONAR_PROJECT="sonar-solutions_Health-Dashboard"
+
+if [[ -z "$SONARQUBE_CLOUD_TOKEN" ]]; then
+  echo "  Skipping: SONARQUBE_CLOUD_TOKEN not set"
+else
+  PR_KEYS=$(curl -sf -u "${SONARQUBE_CLOUD_TOKEN}:" \
+    "${SONAR_HOST}/api/project_pull_requests/list?project=${SONAR_PROJECT}" \
+    | python3 -c "
+import json,sys
+prs = json.load(sys.stdin).get('pullRequests', [])
+keep = {'demo/bad-state'}
+for pr in prs:
+    if pr.get('branch') not in keep:
+        print(pr['key'])
+" 2>/dev/null || true)
+
+  if [[ -z "$PR_KEYS" ]]; then
+    echo "  No stale PR analyses to remove."
+  else
+    while IFS= read -r pr_key; do
+      [[ -z "$pr_key" ]] && continue
+      if curl -sf -X POST -u "${SONARQUBE_CLOUD_TOKEN}:" \
+        "${SONAR_HOST}/api/project_pull_requests/delete" \
+        -d "project=${SONAR_PROJECT}&pullRequest=${pr_key}" > /dev/null 2>&1; then
+        echo "  Deleted PR analysis #${pr_key}"
+      else
+        echo "  Warning: could not delete PR analysis #${pr_key}"
+      fi
+    done <<< "$PR_KEYS"
+  fi
+fi
+
 # Reset live-push branch (only if SE name resolved)
 if [[ -n "$SE_NAME" ]]; then
   LIVE_BRANCH="demo/live-push-${SE_NAME}"

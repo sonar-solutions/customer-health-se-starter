@@ -62,10 +62,10 @@ This repo has everything from basic guardrails to autonomous multi-agent workflo
 
 | Track | Maturity | Audience | Time | What You'll Show |
 |-------|----------|----------|------|-----------------|
-| **A: Guardrails** | Early / AI-cautious | Security-first, compliance-heavy | 15 min | Hooks, CLAUDE.md, `/pre-push-review`, `/sonar-audit` |
+| **A: Guardrails** | Early / AI-cautious | Security-first, compliance-heavy | 15 min | Hooks, CLAUDE.md, `/pre-push-review` |
 | **B: AI-Assisted Dev** | Adopting | Teams using Copilot/Claude for generation | 20 min | CAG guidelines, code generation, `/sonar-fix` |
 | **C: Autonomous Agents** | Scaling | Teams adopting agentic workflows | 20 min | `/sonar-blitz`, `/tech-debt-sprint`, `/arch-guard` |
-| **D: Custom Agent Patterns** | Platform-native | Platform engineering teams | 20 min | `/security-posture`, `/sonar-onboard`, agent anatomy |
+| **D: Custom Agent Patterns** | Platform-native | Platform engineering teams | 20 min | `/security-posture`, `/sonar-onboard`, agent anatomy, `/instance-report` (optional) |
 
 > **SE note:** Don't show the Maturity column to the customer. Use "where are you in your AI adoption journey?" framing instead. Tracks A+B is the most common pairing for mid-maturity teams. You can run A→B→C→D for a full 75-min deep dive.
 
@@ -144,13 +144,6 @@ Expected findings:
 
 > "Six findings across Python and TypeScript before a single line hits CI — bugs, security
 > issues, vulnerable dependencies. Two languages, one quality gate. The verdict: **do not push**."
-
-### A5 — Quick Audit
-
-Run `/sonar-audit`.
-
-> "This is a lightweight read-only audit — no code changes, just a snapshot. Works in
-> read-only environments where you can't run a full agent workflow."
 
 **Track A close:**
 
@@ -415,6 +408,34 @@ Open `.claude/agents/vulnerability-correlator.md` and walk through the structure
 > Any developer who opens the project gets them automatically."
 
 Show the agent inventory table from `.claude/CLAUDE.md`.
+
+### D4 — Instance Report *(optional — existing customers only)*
+
+> **When to use:** Run this when the audience is a SonarQube admin or engineering leader
+> at an existing customer. Skip entirely for net-new prospects — there's no instance data
+> to report on. Best entry points: EBR/QBR prep, expansion conversations, or when the
+> admin in the room wants an org-level view rather than a project-level one.
+
+```
+/instance-report
+```
+
+No project context required — this operates at the org level. Single command, one to two
+minutes to run. Point out what the audience couldn't easily assemble from the UI:
+
+- Pass rate across all projects at once (not per-project clicking)
+- Empty or misconfigured quality gates by name
+- E-rated projects ranked by issue density — "these are your highest-risk codebases"
+- 867 person-days of technical debt across the org — concrete ROI framing
+- Unused quality profiles creating configuration drift
+
+> "Before an EBR, run this. You'll walk in knowing more about their instance health than
+> they do — which gates have zero conditions, which projects have never been scanned,
+> where the worst issue density lives. That's the conversation that earns renewal."
+
+**Expansion bridge:** If the density table or E-rated list lands, pivot to the autonomous
+remediation story: *"You have 23 E-rated security projects. Let me show you what it looks
+like when the fix cycle is autonomous"* → segue to `/sonar-blitz` or SQRA.
 
 **Track D close:**
 

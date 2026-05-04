@@ -105,6 +105,21 @@ sonar-scanner \
 | `metrics-analyzer` | Lightweight metrics dashboard | `get_component_measures`, `get_project_quality_gate_status` |
 | `debt-hotspot-finder` | Top files by bug/code-smell density | `search_sonar_issues_in_projects`, `get_source_code` |
 
+## Skills (.claude/skills/)
+
+| Skill | Audience | Purpose |
+|-------|----------|---------|
+| `pre-push-review` | Developer | Analyze changed files before pushing — issues, arch violations, SCA |
+| `sonar-audit` | Developer | Quick single-project risk snapshot — what's broken right now |
+| `sonar-onboard` | Developer (new) | Project orientation — architecture, standards, workflow |
+| `sonar-fix` | Developer | Fix a single SonarQube issue with full AC/DC loop |
+| `sonar-blitz` | Developer | Fix multiple issues in parallel across files |
+| `sonar-watch` | Developer | Post-push QG check — CI status, new issues, recommended fixes |
+| `security-posture` | Security / Lead | Full attack surface + reachability assessment (3-agent) |
+| `tech-debt-sprint` | Tech Lead | Prioritized debt analysis with blast radius (2-wave) |
+| `arch-guard` | Tech Lead | Architecture compliance check against defined constraints |
+| `instance-report` | **SQ Admin / Leader** | **Instance-wide report: footprint, QG health, LOC, debt, ratings, SCA** |
+
 ## Available SonarQube MCP Tools
 
 ### Context Augmentation (CAG)

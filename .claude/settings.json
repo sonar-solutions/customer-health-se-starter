@@ -41,6 +41,7 @@
         "hooks": [
           {
             "type": "command",
+            "statusMessage": "Analyzing with SonarQube...",
             "command": ".claude/hooks/sonar-sqaa/build-scripts/posttool-sqaa.sh",
             "timeout": 60
           }

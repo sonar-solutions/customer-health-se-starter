@@ -29,9 +29,20 @@ esac
 # Capture SQAA analysis output and pass it to Claude via additionalContext
 output=$(sonar verify --file "$file_path" --project sonar-solutions_Health-Dashboard 2>/dev/null)
 
-# JSON-escape the output using awk (no external runtimes required)
-escaped=$(printf '%s' "$output" | awk 'BEGIN{ORS=""} {gsub(/\\/, "\\\\"); gsub(/"/, "\\\""); gsub(/\t/, "\\t"); gsub(/\r/, "\\r"); if(NR>1) printf "\\n"; print}')
+# JSON-escape helper (no external runtimes required)
+json_escape() {
+  printf '%s' "$1" | awk 'BEGIN{ORS=""} {gsub(/\\/, "\\\\"); gsub(/"/, "\\\""); gsub(/\t/, "\\t"); gsub(/\r/, "\\r"); if(NR>1) printf "\\n"; print}'
+}
 
-printf '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"%s"}}\n' "$escaped"
+escaped=$(json_escape "$output")
+escaped_path=$(json_escape "$file_path")
+
+if [[ -z "$output" ]]; then
+  system_msg="SQAA: ${escaped_path} — no issues found."
+else
+  system_msg="SQAA: ${escaped_path}\\n${escaped}"
+fi
+
+printf '{"systemMessage":"%s","hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"%s"}}\n' "$system_msg" "$escaped"
 
 exit 0

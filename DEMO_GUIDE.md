@@ -36,8 +36,8 @@
 
 **Say:**
 
-> "You're already using AI coding tools. The question is: where does AI end
-> and human review begin?
+> "AI is writing more of your code every day. The real question is: can you trust what gets merged
+> as much as the code your best engineers write?
 > Sonar's AC/DC framework — Agent Centric Development Cycle — gives you four phases:
 > **Guide, Generate, Verify, Solve**.
 > Your CI is the outer loop. What we're about to show is the **inner loop** —

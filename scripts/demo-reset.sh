@@ -96,10 +96,8 @@ else
     | python3 -c "
 import json,sys
 prs = json.load(sys.stdin).get('pullRequests', [])
-keep = {'demo/bad-state'}
 for pr in prs:
-    if pr.get('branch') not in keep:
-        print(pr['key'])
+    print(pr['key'])
 " 2>/dev/null || true)
 
   if [[ -z "$PR_KEYS" ]]; then
@@ -117,6 +115,35 @@ for pr in prs:
     done <<< "$PR_KEYS"
   fi
 fi
+
+# Refresh demo/bad-state PR on GitHub
+echo ""
+echo "Refreshing demo/bad-state PR..."
+GITHUB_TOKEN="" gh pr close demo/bad-state --comment "Reset for next demo" 2>/dev/null || true
+
+GITHUB_TOKEN="" gh pr create \
+  --base main \
+  --head demo/bad-state \
+  --title "feat: add account export endpoint" \
+  --body "$(cat <<'PRBODY'
+## Summary
+
+Adds a `GET /api/export` endpoint that exports account data to a JSON file.
+
+## SonarQube Will Find
+
+- **Path traversal vulnerability** — `filename` query parameter is used directly in `os.path.join()` without sanitization. An attacker could write outside the intended export directory.
+- Existing issues on the branch: token in query param, localStorage hotspot, cognitive complexity, missing error state, vulnerable deps (requests, lodash)
+
+## Demo Flow
+
+1. Show this PR — quality gate should fail on the path traversal finding
+2. Use `issue-fixer` or `/sonar-fix` to remediate
+3. Compare with `demo/fixed-state` where all issues are resolved
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+PRBODY
+)" && echo "  PR reopened from demo/bad-state" || echo "  Warning: could not reopen PR"
 
 # Reset live-push branch (only if SE name resolved)
 if [[ -n "$SE_NAME" ]]; then

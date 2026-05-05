@@ -11,6 +11,7 @@
 > bash scripts/demo-reset.sh
 > ```
 > Safe to run anytime. Resets to clean `origin/main`, restores all 6 intentional issues,
+> closes and reopens the `demo/bad-state` PR fresh (new PR number, clean SonarQube analysis),
 > and closes any open live-push PR (you'll open a fresh one live in C4).
 > Will warn before discarding uncommitted changes.
 
@@ -287,7 +288,7 @@ Validates:
 
 ### C4 — Outer Loop: Live Push + Arch Violation
 
-**Pre-demo:** `bash scripts/demo-reset.sh` — closes any open PR on the live-push branch and resets it to the violation commit.
+**Pre-demo:** `bash scripts/demo-reset.sh` — closes any open PR on the live-push branch, resets it to the violation commit, and refreshes the `demo/bad-state` PR with a clean GitHub PR and SonarQube analysis.
 
 Check out the branch:
 

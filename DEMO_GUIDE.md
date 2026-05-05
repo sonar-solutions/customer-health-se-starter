@@ -43,11 +43,7 @@
 > Your CI is the outer loop. What we're about to show is the **inner loop** —
 > what happens before a PR is ever created."
 
-**Draw/show slide:**
-
-```
-Guide → Generate → Verify → Solve
-```
+<p align="center"><img src="docs/assets/acdc-inner-outer-loop.png" alt="Guide-Verify-Solve runs twice: in each agentic reasoning step (inner loop) and once the agent finishes for comprehensive verification (outer loop)" width="700"></p>
 
 > "This cycle runs at two levels. The **inner loop** is real-time — happening
 > inside each agentic reasoning step, micro-corrections as the agent works,

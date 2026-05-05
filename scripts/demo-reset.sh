@@ -88,10 +88,10 @@ echo "Cleaning up stale SonarQube PR analyses..."
 SONAR_HOST="https://sonarcloud.io"
 SONAR_PROJECT="sonar-solutions_Health-Dashboard"
 
-if [[ -z "$SONARQUBE_CLOUD_TOKEN" ]]; then
-  echo "  Skipping: SONARQUBE_CLOUD_TOKEN not set"
+if [[ -z "$SONAR_TOKEN" ]]; then
+  echo "  Skipping: SONAR_TOKEN not set"
 else
-  PR_KEYS=$(curl -sf -u "${SONARQUBE_CLOUD_TOKEN}:" \
+  PR_KEYS=$(curl -sf -u "${SONAR_TOKEN}:" \
     "${SONAR_HOST}/api/project_pull_requests/list?project=${SONAR_PROJECT}" \
     | python3 -c "
 import json,sys
@@ -105,7 +105,7 @@ for pr in prs:
   else
     while IFS= read -r pr_key; do
       [[ -z "$pr_key" ]] && continue
-      if curl -sf -X POST -u "${SONARQUBE_CLOUD_TOKEN}:" \
+      if curl -sf -X POST -u "${SONAR_TOKEN}:" \
         "${SONAR_HOST}/api/project_pull_requests/delete" \
         -d "project=${SONAR_PROJECT}&pullRequest=${pr_key}" > /dev/null 2>&1; then
         echo "  Deleted PR analysis #${pr_key}"
@@ -120,6 +120,7 @@ fi
 echo ""
 echo "Refreshing demo/bad-state PR..."
 GITHUB_TOKEN="" gh pr close demo/bad-state --comment "Reset for next demo" 2>/dev/null || true
+sleep 3
 
 GITHUB_TOKEN="" gh pr create \
   --base main \
@@ -144,6 +145,17 @@ Adds a `GET /api/export` endpoint that exports account data to a JSON file.
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 PRBODY
 )" && echo "  PR reopened from demo/bad-state" || echo "  Warning: could not reopen PR"
+
+# Confirm CI was triggered for the new PR
+echo "  Waiting for CI trigger..."
+sleep 5
+RUN_URL=$(GITHUB_TOKEN="" gh run list --branch demo/bad-state --workflow ci.yml --limit 1 --json url,status --jq '.[0] | "\(.status)  \(.url)"' 2>/dev/null || true)
+if [[ -n "$RUN_URL" ]]; then
+  echo "  CI run: $RUN_URL"
+  echo "  SonarQube analysis will be ready in ~2 min."
+else
+  echo "  Warning: CI run not detected — check Actions tab manually."
+fi
 
 # Reset live-push branch (only if SE name resolved)
 if [[ -n "$SE_NAME" ]]; then

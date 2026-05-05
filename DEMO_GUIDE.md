@@ -105,12 +105,9 @@ Open `.claude/CLAUDE.md` and walk through:
 
 **Before showing:** Ask one of these depending on audience:
 
-- *Technical / AppSec:* "Our customers love the secrets detection in CI and the IDE — but with AI assistants in the mix, where do you see the new exposure points your current controls don't cover?"
-- *Less technical:* "We hear a lot about two risks with AI assistants — Claude reading a `.env` file, or a developer pasting an API key straight into the prompt. Have either of those come up for your teams?"
+- "We hear a lot about two risks with AI assistants — Claude reading a `.env` file, or a developer pasting an API key straight into the prompt. Have either of those come up for your teams?... Let me show you exactly how we close that gap."
 
-Wait for their answer, then: *"Let me show you exactly how we close that gap."*
-
-Type a prompt that includes a fake credential:
+Drop in fake credential prompt:
 
 ```
 Can you check my last PR run? My Github token is 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
@@ -122,7 +119,7 @@ The `UserPromptSubmit` hook runs `sonar analyze secrets` on the prompt before it
 > it, scans it for secrets, and blocks the message if it finds a match — using the same
 > detection engine as your CI pipeline."
 
-Also demonstrate the PreToolUse hook:
+You can also demo or mention the PreToolUse secrets hook:
 
 > "The same scanning runs before Claude reads any file. If `sonar analyze secrets` finds
 > a credential in a file you're about to read, the hook blocks the file read."
@@ -133,16 +130,9 @@ Also demonstrate the PreToolUse hook:
 
 Run `/pre-push-review`.
 
-Expected findings:
-- `backend/app/clients/sonarqube_client.py` — hardcoded `api_key` constant (Security — `python:S6418`)
-- `backend/app/services/scoring.py` — cognitive complexity > 15 (Code Smell — `python:S3776`)
-- `backend/requirements.txt` — `pytest==8.2.0` (SCA — CVE-2025-71176)
-- `frontend/src/services/api.ts` — ReDoS-vulnerable regex in `validateProjectKey` (Security — `typescript:S5852`)
-- `frontend/src/hooks/useHealthScore.ts` — empty catch silently swallows errors (Bug — `typescript:S2486`)
-- `frontend/package.json` — `caniuse-lite@1.0.30001791` (SCA — prohibited license)
+The skill runs four checks, all scoped to the changed files: `sonar verify` on each modified code file, architecture constraint validation against the repo's defined intended architecture, security hotspot lookup filtered to changed file paths, and SCA dependency risk scan triggered only if a dependency manifest was modified. Results are merged into a single tiered verdict — BLOCKER through INFO — across both languages in one pass.
 
-> "Six findings across Python and TypeScript before a single line hits CI — bugs, security
-> issues, vulnerable dependencies. Two languages, one quality gate. The verdict: **do not push**."
+> "Everything you see is scoped to what's actually changing — not the whole project. Bugs, security issues, architecture violations, vulnerable dependencies, one verdict, before a single line hits CI."
 
 **Track A close:**
 

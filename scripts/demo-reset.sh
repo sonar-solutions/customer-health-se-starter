@@ -116,6 +116,24 @@ for pr in prs:
   fi
 fi
 
+# Close SonarQube Remediation Agent PRs and delete their branches
+echo ""
+echo "Closing SonarQube Remediation Agent PRs..."
+SQRA_PRS=$(GITHUB_TOKEN="" gh pr list --author "app/sonarqube-agent" --state open --json number,headRefName \
+  --jq '.[] | "\(.number) \(.headRefName)"' 2>/dev/null || true)
+if [[ -z "$SQRA_PRS" ]]; then
+  echo "  No SQRA PRs to close."
+else
+  while IFS=' ' read -r pr_num branch_name; do
+    [[ -z "$pr_num" ]] && continue
+    GITHUB_TOKEN="" gh pr close "$pr_num" --comment "Reset for next demo" 2>/dev/null \
+      && echo "  Closed PR #${pr_num} (${branch_name})" \
+      || echo "  Warning: could not close PR #${pr_num}"
+    git push origin --delete "$branch_name" 2>/dev/null \
+      && echo "  Deleted branch ${branch_name}" || true
+  done <<< "$SQRA_PRS"
+fi
+
 # Refresh demo/bad-state PR on GitHub
 echo ""
 echo "Refreshing demo/bad-state PR..."

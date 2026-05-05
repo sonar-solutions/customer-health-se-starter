@@ -137,7 +137,11 @@ fi
 # Refresh demo/bad-state PR on GitHub
 echo ""
 echo "Refreshing demo/bad-state PR..."
-GITHUB_TOKEN="" gh pr close demo/bad-state --comment "Reset for next demo" 2>/dev/null || true
+BAD_STATE_PR=$(GITHUB_TOKEN="" gh pr list --head demo/bad-state --state open --json number --jq '.[0].number' 2>/dev/null || true)
+if [[ -n "$BAD_STATE_PR" ]]; then
+  GITHUB_TOKEN="" gh pr close "$BAD_STATE_PR" --comment "Reset for next demo" \
+    && echo "  Closed PR #${BAD_STATE_PR}" || echo "  Warning: could not close PR #${BAD_STATE_PR}"
+fi
 sleep 3
 
 GITHUB_TOKEN="" gh pr create \

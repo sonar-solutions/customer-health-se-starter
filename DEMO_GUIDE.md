@@ -27,8 +27,7 @@
 - [ ] Run `bash scripts/demo-reset.sh` (see above)
 - [ ] Wait ~2 min for `demo/bad-state` PR analysis to appear in SonarQube Cloud
 - [ ] Start a fresh Claude Code session in this repo directory (SessionStart hook fires on open)
-- [ ] Verify hook fired — you should see a status message with live issue counts from SonarQube
-- [ ] Verify SonarQube MCP is connected: `/mcp`
+- [ ] Verify hook fired — status message shows issue counts and MCP ✓/✗ connection status
 - [ ] Open this file in a second tab
 - [ ] Have the AC/DC blog post ready: https://www.sonarsource.com/blog/the-future-is-ac-dc-the-agent-centric-development-cycle/
 

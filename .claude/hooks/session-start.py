@@ -69,7 +69,21 @@ if branch:
 if pr_label:
     header_parts.append(pr_label)
 
+# --- MCP connection check ---
+mcp_status = "✗ not connected — run /mcp to diagnose"
+try:
+    r = subprocess.run(
+        ["docker", "ps", "--filter", "ancestor=mcp/sonarqube:latest", "--format", "{{.ID}}"],
+        capture_output=True, text=True, timeout=5
+    )
+    if r.stdout.strip():
+        mcp_status = "✓ connected"
+except Exception:
+    pass
+
 lines = ["SonarQube | " + " | ".join(header_parts)]
+lines.append("")
+lines.append(f"MCP: {mcp_status}")
 lines.append("")
 lines.append("Open issues:")
 lines.append(f"  BLOCKER:  {blockers['total']}")

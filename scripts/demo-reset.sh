@@ -32,6 +32,14 @@ fi
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
+# Files generated live during the workshop's Generate beat.
+# These MUST NOT be tracked on main — if they are, Claude finds the file
+# already exists during the demo and the "watch the AI create this" beat
+# breaks. The safety check below verifies they're absent after reset.
+DEMO_GENERATION_FILES=(
+  "frontend/src/hooks/useProjectMetrics.ts"
+)
+
 echo "=== Demo Reset ==="
 
 # 1. Warn before discarding uncommitted changes
@@ -49,6 +57,18 @@ git checkout main 2>/dev/null || true
 git fetch origin main --quiet
 git reset --hard origin/main
 git clean -fd --quiet
+
+# 2a. Sanity check: verify no demo-generation file leaked onto main.
+for f in "${DEMO_GENERATION_FILES[@]}"; do
+  if git ls-files --error-unmatch "$f" >/dev/null 2>&1; then
+    echo ""
+    echo "ERROR: $f is tracked on main but should not be."
+    echo "  This file is created live by Claude during the workshop's Generate beat."
+    echo "  Fix:  git rm $f && git commit -m 'revert(demo): unstage live-demo file' && git push"
+    echo ""
+    exit 1
+  fi
+done
 
 echo ""
 echo "Intentional issues confirmed present on main:"

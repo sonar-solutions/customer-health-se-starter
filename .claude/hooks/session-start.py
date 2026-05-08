@@ -47,7 +47,7 @@ except Exception:
 # --- fetch issues via CLI ---
 def get_issues(severity, n=500):
     cmd = ["sonar", "list", "issues", "-p", project,
-           "--format", "json", "--page-size", str(n), "--severity", severity]
+           "--format", "json", "--page-size", str(n), "--severities", severity]
     if pr_number:
         cmd += ["--pull-request", pr_number]
     elif branch:

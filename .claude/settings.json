@@ -11,42 +11,7 @@
         ]
       }
     ],
-    "PreToolUse": [
-      {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/pretool-secrets.sh",
-            "timeout": 60
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/prompt-secrets.sh",
-            "timeout": 60
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "statusMessage": "Analyzing with SonarQube...",
-            "command": ".claude/hooks/sonar-sqaa/build-scripts/posttool-sqaa.sh",
-            "timeout": 60
-          }
-        ]
-      },
       {
         "matcher": "Bash",
         "hooks": [
@@ -54,6 +19,17 @@
             "type": "command",
             "command": "bash .claude/hooks/posttool-push-watch.sh",
             "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Running SonarQube Agentic Analysis...",
+            "command": ".claude/hooks/sonar-sqaa/build-scripts/posttool-sqaa.sh",
+            "timeout": 60
           }
         ]
       }

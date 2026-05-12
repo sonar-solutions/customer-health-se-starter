@@ -124,7 +124,34 @@ You can also demo or mention the PreToolUse secrets hook:
 > "The same scanning runs before Claude reads any file. If `sonar analyze secrets` finds
 > a credential in a file you're about to read, the hook blocks the file read."
 
-### A4 — Pre-Push Review
+### A4 — Dependency Check
+
+**Before showing:** *"AI assistants suggest package additions all the time. How quickly does your team know whether a dependency it's about to add has a known CVE?"*
+
+Ask Claude to check a dependency before touching any manifest:
+
+```
+Is requests==2.18.4 safe to add to this project?
+```
+
+Claude calls `check_dependency` with `pkg:pypi/requests@2.18.4`. Point out what comes back:
+
+- **CVE-2018-18074** — SSRF vulnerability, HIGH severity
+- Fixed versions — Claude surfaces what version to use instead
+- License expression — SPDX format, policy-checked automatically
+
+> "This runs before the developer touches `requirements.txt`. Not after the PR. Not after CI.
+> Before. The same CVE data that powers your SCA quality gate, available at the point of need —
+> one question, one answer, safe version included."
+
+**If the audience asks about JavaScript:** Same call works for npm — `pkg:npm/lodash@4.17.10`
+returns CVE-2019-10744. Both packages are already in this repo; both are flagged in the
+`demo/bad-state` quality gate. The check catches them before they're ever committed.
+
+> "That was one dependency. The pre-push review runs the same SCA scan across everything
+> that changed — manifests included."
+
+### A5 — Pre-Push Review
 
 **Before showing:** *"How many push-fix cycles do your developers go through before a PR is clean? Let me show you what it looks like when that feedback arrives before the push instead of after."*
 

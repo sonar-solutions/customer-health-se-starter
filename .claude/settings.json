@@ -20,7 +20,7 @@
             "server": "sonarqube",
             "tool": "get_guidelines",
             "input": {
-              "mode": "combined",
+              "mode": "project_based",
               "file_paths": ["${tool_input.file_path}"]
             },
             "statusMessage": "Loading file guidelines..."

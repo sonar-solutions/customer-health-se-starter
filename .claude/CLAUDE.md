@@ -16,7 +16,8 @@ Demo project for the SonarQube MCP + CLI tool suite — `main` branch contains a
 2. Call `show_rule` on any CRITICAL or BLOCKER rules before touching related code
 
 ### After writing or modifying a file
-1. Treat any `sonar verify` findings as blocking — fix them, or ask the user if they should be marked as false positive. Use `change_sonar_issue_status` with `falsepositive` to mark them if confirmed
+1. The `PostToolUse` hook runs `sonar verify` automatically — always narrate the result explicitly in your response. The hook output lands in the collapsed hooks panel and is invisible to the user unless called out. Say something like: `SonarQube SQAA: ✅ no issues found` or `SonarQube SQAA: ❌ N issue(s) found — <summary>`.
+2. Treat any findings as blocking — fix them, or ask the user if they should be marked as false positive. Use `change_sonar_issue_status` with `falsepositive` to mark them if confirmed
 
 
 ### Before changing architecture

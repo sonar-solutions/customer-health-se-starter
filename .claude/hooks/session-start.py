@@ -90,6 +90,19 @@ lines.append(f"  BLOCKER:  {blockers['total']}")
 lines.append(f"  CRITICAL: {criticals['total']}")
 lines.append(f"  MAJOR:    {majors['total']}")
 
+# --- component measures ---
+measures = {}
+try:
+    r = subprocess.run(
+        ["sonar", "api", "get",
+         f"/api/measures/component?component={project}&metricKeys=coverage,complexity,duplicated_lines_density"],
+        capture_output=True, text=True, env=env, timeout=15
+    )
+    for m in json.loads(r.stdout).get("component", {}).get("measures", []):
+        measures[m["metric"]] = m.get("value", "?")
+except Exception:
+    pass
+
 top = (blockers.get("issues", []) + criticals.get("issues", []))[:5]
 if top:
     lines.append("")
@@ -100,6 +113,13 @@ if top:
         sev = i["severity"]
         msg = i["message"]
         lines.append(f"  [{sev}] {f}:{l} — {msg}")
+
+if measures:
+    cov = measures.get("coverage", "?")
+    dup = measures.get("duplicated_lines_density", "?")
+    cmplx = measures.get("complexity", "?")
+    lines.append("")
+    lines.append(f"Measures: Coverage {cov}% · Complexity {cmplx} · Duplication {dup}%")
 
 lines.append("")
 lines.append("Per CLAUDE.md: consult SonarQube MCP before editing any file.")

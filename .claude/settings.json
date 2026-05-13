@@ -11,6 +11,29 @@
         ]
       }
     ],
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "mcp_tool",
+            "server": "sonarqube",
+            "tool": "get_guidelines",
+            "input": {
+              "mode": "combined",
+              "file_paths": ["${tool_input.file_path}"]
+            },
+            "statusMessage": "Loading file guidelines..."
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pretool-file-issues.sh",
+            "statusMessage": "Loading file issues...",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Bash",

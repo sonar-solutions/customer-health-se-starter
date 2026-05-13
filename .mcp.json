@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "sonarqube": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run", "--init", "-i", "--rm",
+        "-e", "SONARQUBE_URL",
+        "-e", "SONARQUBE_TOKEN",
+        "-e", "SONARQUBE_ORG",
+        "-e", "SONAR_SQ_PROJECT_KEY",
+        "-e", "SONARQUBE_ADVANCED_ANALYSIS_ENABLED",
+        "-v", "/Users/theil.bise/repos/demos/customer-health:/app/mcp-workspace:rw",
+        "mcp/sonarqube:latest"
+      ],
+      "env": {
+        "SONARQUBE_URL": "https://sonarcloud.io",
+        "SONARQUBE_TOKEN": "${SONARCLOUD_DEMOS_TOKEN}",
+        "SONARQUBE_ORG": "sonar-solutions",
+        "SONAR_SQ_PROJECT_KEY": "sonar-solutions_Health-Dashboard",
+        "SONARQUBE_ADVANCED_ANALYSIS_ENABLED": "true"
+      },
+      "alwaysLoad": true
+    }
+  }
+}

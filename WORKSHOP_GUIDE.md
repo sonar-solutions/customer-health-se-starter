@@ -12,23 +12,30 @@
 
 ---
 
-## 0 — Framing *(5 min)*
+## 0 — Framing *(3 min)*
 
 - The problem: AI increases code volume *and* rework simultaneously. 37% of AI PRs fail quality gates.
 - The three outcomes, in order of effort: **Verify → Guide → Solve**
-- (Verify will be a more realistic and valuable starting point for most orgs than Guide)
-- Potentially add slide to frame for SQ analysis as a baseline
 
 ---
 
-## 1 — The Building Blocks *(5 min, no demo)*
+## 1 — The Building Blocks *(7 min, no demo)*
 
-Name the components before they appear live.
+Name and show the components before they appear live. Audiences follow the demo better when they've seen the map first.
 
-- **CLI** (`sonar`) — Runs analysis on files, detects secrets. Deterministic. Runs anywhere a shell runs.
-- **MCP server** — Exposes SonarQube data to Claude as callable tools. Live analysis, not training data.
-- **Maybe align on commonalities between common AI tools** (these concepts exist across all tools)
-- **Skills vs Hooks + CLAUDE.md** — Wires CLI and MCP into the workflow automatically. Deterministic enforcement, not AI discretion.
+- **CLI** (`sonar`) — Runs analysis on individual files, detects secrets in prompts and staged files. Deterministic, runs anywhere a shell runs.
+- **MCP server** — Exposes SonarQube data to the agent as callable tools. Three groups:
+  - *CAG (Context Augmentation)* — `get_guidelines`, `get_current_architecture`, call-flow tools. Injects project-specific rules and structure before the agent writes anything.
+  - *Agentic Analysis* — `sonar verify` via CLI. Real-time CI-quality analysis per file, triggered automatically by hooks.
+  - *Standard* — `search_sonar_issues`, `get_project_quality_gate_status`, `get_component_measures`. What you'd normally click through in the UI, now callable in-session.
+  - **Open** `.claude/CLAUDE.md` → "Available SonarQube MCP Tools" section. Let the audience read the tool names — they'll recognize them when they appear in the demo.
+- **Hooks + CLAUDE.md** — Wires CLI and MCP tools into the workflow automatically. Deterministic enforcement, not AI discretion.
+
+> **Two execution contexts — one integration:**
+> - CLI = any shell, any IDE, any CI pipeline. No agent required.
+> - MCP tools = Claude Code session (and now also hookable within it via `mcp_tool` hooks). Richer data, requires the server to be connected.
+>
+> Both run deterministically when wired through hooks. The difference is *where* they can run. This is why the CLI isn't redundant — it's what enforces quality standards everywhere the MCP server isn't present.
 
 ---
 
@@ -50,8 +57,7 @@ Name the components before they appear live.
 - **Point out:** SessionStart hook fires on open — live issue counts injected as context before the first message.
 - **Run:**
   > "Can you triage the issues in new code in this project?"
-- **Point out:** Watch the tool calls — Claude made several MCP calls autonomously because it saw the quality gate was failing and kept digging. Everything in that output came from SonarQube analysis, not from reading the source files.
-- CLI vs MCP callout
+- **Point out:** Watch the tool calls — Claude made several MCP calls autonomously because it saw the quality gate was failing and kept digging. Everything in that output came from SonarQube analysis, not from reading the source files. Call back to Section 1: *"Those are the Standard tools — same data you'd find in the UI, now callable mid-session."*
 
 ---
 

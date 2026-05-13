@@ -28,6 +28,55 @@ cd backend && source .venv/bin/activate && uvicorn app.main:app --reload
 cd frontend && npm run dev
 ```
 
+## SE Setup
+
+### Prerequisites
+
+- Python 3.12, Node.js 20+, Docker (running)
+- SonarQube CLI: run `/plugin install sonarqube@sonar` in Claude Code, or download from [SonarSource docs](https://docs.sonarsource.com/sonarqube-cloud/advanced-setup/ci-based-analysis/sonarscanner-cli/)
+- GitHub CLI: https://cli.github.com — run `gh auth login` after installing
+- Claude Code
+
+> `.venv` and `node_modules` are pre-committed — no `pip install` or `npm install` needed after cloning.
+
+### Environment variables
+
+One SonarQube Cloud user token covers all three. Generate one at sonarcloud.io → My Account → Security → Generate Token (needs Admin + Execute Analysis on the `sonar-solutions` org).
+
+```bash
+export SONAR_TOKEN=<your-token>            # sonar CLI auth
+export SONARQUBE_CLOUD_TOKEN=<your-token>  # demo-reset.sh
+export SONARCLOUD_DEMOS_TOKEN=<your-token> # MCP server
+```
+
+Add all three to `~/.zshrc` or `~/.bashrc` so they're set on every shell open.
+
+### MCP setup
+
+`.mcp.json` is included and uses `$(pwd)` for the workspace path — no manual path editing needed. Claude Code picks it up automatically when you open the repo.
+
+If MCP shows `✗ not connected` in the session start output, run `/mcp` in Claude Code to diagnose.
+
+### First demo run
+
+```bash
+bash scripts/demo-reset.sh
+```
+
+Open a fresh Claude Code session. The SessionStart hook should output issue counts, coverage/complexity measures, and `MCP: ✓ connected`. If everything looks good, you're demo-ready.
+
+### Per-SE live-push branch
+
+For the C4 architecture violation demo beat, create your own sandbox branch:
+
+```bash
+bash scripts/demo-reset.sh --se <yourname>
+```
+
+This creates `demo/live-push-<yourname>` scoped to you.
+
+--------
+
 ## SonarQube Demo Coverage
 
 This project demonstrates:

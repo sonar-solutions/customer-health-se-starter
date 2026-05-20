@@ -60,7 +60,19 @@
   },
   "permissions": {
     "allow": [
-      "mcp__sonarqube__*"
+      "mcp__sonarqube__*",
+      "mcp__glean_portkey-glean__search",
+      "mcp__glean_portkey-glean__gmail_search",
+      "mcp__glean_portkey-glean__read_document",
+      "mcp__salesloft__get_account_overview",
+      "mcp__salesloft__get_conversation_transcript",
+      "mcp__salesloft__search_conversations",
+      "mcp__salesloft__search_account_context",
+      "mcp__salesloft__search_conversation_corpus",
+      "mcp__sonardata__execute_query",
+      "Bash(sonar verify *)",
+      "Bash(sonar api *)",
+      "Bash(sonar hook *)"
     ]
   },
   "skillOverrides": {

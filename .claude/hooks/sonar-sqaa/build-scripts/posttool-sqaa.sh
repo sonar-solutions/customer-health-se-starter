@@ -3,7 +3,7 @@ if ! command -v sonar &> /dev/null; then
   exit 0
 fi
 
-output=$(sonar hook claude-post-tool-use --project sonar-solutions_Health-Dashboard 2>&1)
+output=$(cat | sonar hook claude-post-tool-use --project sonar-solutions_Health-Dashboard 2>&1)
 
 if echo "$output" | grep -qi "no issues found"; then
   echo "SonarQube SQAA: ✅ no issues found"

@@ -43,15 +43,11 @@ The MCP server exposes SonarQube data to Kiro (and any MCP-compatible AI tool) a
 
 > **Open** `.claude/CLAUDE.md` → "Available SonarQube MCP Tools" section. Walk through the three groups — they'll recognize them when they appear in the demo.
 
-### SonarLint + Connected Mode — inline findings today
+### SonarQube Server — the source of truth
 
-SonarQube for IDE (SonarLint) with Connected Mode pulls SonarQube Server rules directly into the editor. Findings appear inline as you type, synced with your project's quality profile. No MCP, no Docker, no additional infrastructure. Officially supported in VS Code, IntelliJ, Visual Studio, and Eclipse. Kiro is VS Code-based and likely supports VS Code extensions — confirm with your team before the call.
+Everything in this demo is downstream of one thing: the SonarQube analysis already running in your CI pipeline. 7,500+ rules across 40+ languages, industry-lowest false positive rate (3.2%), quality gates that give a deterministic pass/fail on every PR. The CLI, the MCP tools, and the AI workflows shown today don't add a second opinion — they surface the same analysis SonarQube is already producing, earlier and in more places.
 
-> "This is how developers get inline SonarQube findings today, without waiting for CI. Connected Mode is the bridge between your Server instance and the developer's editor."
-
-### CLAUDE.md + Hooks — deterministic enforcement
-
-`.claude/CLAUDE.md` is committed to the repo. Every developer who clones it inherits the same workflow rules, agent inventory, and MCP tool list. Hooks wire CLI and MCP tools into the development loop automatically.
+> "The AI doesn't decide what's a bug. SonarQube does — the same way it always has. What changes is when and where that verdict reaches the developer."
 
 ---
 
@@ -74,18 +70,13 @@ You can also mention the `PreToolUse` hook: the same scanning runs before Claude
 
 ```bash
 # Quality gate status for a project
-sonar api get /api/qualitygates/project_status --projectKey=sonar-solutions_Health-Dashboard
+sonar api get "/api/qualitygates/project_status?projectKey=sonar-solutions_Health-Dashboard"
 
 # Open issues by severity
-sonar api get /api/issues/search \
-  --componentKeys=sonar-solutions_Health-Dashboard \
-  --severities=BLOCKER,CRITICAL \
-  --statuses=OPEN
+sonar api get "/api/issues/search?componentKeys=sonar-solutions_Health-Dashboard&severities=BLOCKER,CRITICAL&statuses=OPEN"
 
 # Multi-metric snapshot
-sonar api get /api/measures/component \
-  --component=sonar-solutions_Health-Dashboard \
-  --metricKeys=coverage,bugs,vulnerabilities,code_smells
+sonar api get "/api/measures/component?component=sonar-solutions_Health-Dashboard&metricKeys=coverage,bugs,vulnerabilities,code_smells"
 ```
 
 **Point out:**
@@ -107,25 +98,16 @@ sonar api get /api/measures/component \
 **Point out:** Watch the tool calls — Claude made several MCP calls autonomously because it saw the quality gate was failing and kept digging. `search_sonar_issues_in_projects`, `get_project_quality_gate_status`, `get_component_measures` — these are Standard tools, available against a SonarQube Server instance. Everything in that output came from SonarQube analysis, not from reading source files.
 
 **Run:**
+> "Can you tell me the quality gate status of my latest PR and suggest some fixes for the SonarQube issues?"
+
+**Point out:** Claude calls `list_pull_requests` to find PR #31, then `get_project_quality_gate_status` with the PR ID, then `search_sonar_issues_in_projects` scoped to that PR — all Standard tools. It surfaces the failing conditions and gives concrete, file-and-line fix suggestions for every issue without ever leaving the conversation.
+
+> "The developer gets a blocking security finding, the root cause, and a fix — all from a single question, before the PR is merged. No UI, no ticket, no context switch."
+
+**Run:**
 > `/sonar-audit`
 
 **Point out:** The skill calls quality gate status, component metrics, open issues by severity, and security hotspots — then formats a structured report. This is what a tech lead would run instead of clicking through the SonarQube UI.
-
-```
-SONAR AUDIT — sonar-solutions_Health-Dashboard
-============================
-
-QUALITY GATE: FAILED
-  new_maintainability_rating: C (expected A)
-  ...
-
-METRICS
-  Lines of Code: ... | Coverage: ...% | Duplication: ...%
-
-OPEN ISSUES BY SEVERITY
-  BLOCKER: N | CRITICAL: N | MAJOR: N
-  ...
-```
 
 > "One command, structured output. Your technical leads can run this from their IDE or terminal — or it can be the backend of an Amazon Q action that answers 'how is our codebase doing?' in natural language."
 
@@ -152,27 +134,6 @@ Claude calls `check_dependency` with `pkg:pypi/requests@2.18.4`. **Point out:**
 
 **Note for SE:** `check_dependency` requires Enterprise edition + Advanced Security on SQS. Verify their tier before demoing this live — if they're not on Enterprise, pivot to the quality gate SCA findings in the UI instead.
 
-### Guide phase — what Context Augmentation looks like
-
-Open `frontend/src/hooks/useHealthScore.ts` line 15 — show the empty `catch` block:
-
-```typescript
-} catch (e) {}
-```
-
-> "This is a silent failure. The error disappears, the UI never knows anything went wrong. This pattern is flagged in SonarQube as 'Exceptions should not be ignored.'"
-
-> "With Context Augmentation — the `get_guidelines` tool — the AI pulls the project's actual SonarQube rules into context *before* writing any code. It knows to avoid this pattern. The AI generates the correct error-handling approach not because it guessed right, but because the guideline was in context."
-
-**Show or describe the output** (run `get_guidelines` against the Cloud project to demonstrate):
-```
-Rule: Exceptions should not be ignored (python:S108, typescript:S108)
-Pattern to avoid: empty catch blocks that swallow errors silently
-Correct approach: either log the error or propagate it via error state
-```
-
-> "Context Augmentation is Cloud-only today. This is one of the concrete things that changes if you move to SonarQube Cloud."
-
 ---
 
 ## 5 — Verify: What SQAA Looks Like *(2 min)*
@@ -188,6 +149,8 @@ sonar verify --file frontend/src/services/api.ts --project sonar-solutions_Healt
 > "On SonarQube Cloud, this runs automatically the moment the AI writes a file — no one invokes it. The `PostToolUse` hook fires on every `Edit` or `Write` tool call and triggers this analysis. The developer can't skip it, the AI can't skip it."
 
 > "On SonarQube Server today, the inline story is SonarLint in Connected Mode — findings appear as you type, synced with your Server quality profile. SQAA as infrastructure — auto-triggered on every file write — is a Cloud capability we'll cover next."
+
+**Note:** Cloud also adds Context Augmentation (`get_guidelines`, architecture tools) — the AI pulls project-specific SonarQube rules into context before generating any code, so violations like empty catch blocks are avoided at the point of generation, not caught after.
 
 ---
 

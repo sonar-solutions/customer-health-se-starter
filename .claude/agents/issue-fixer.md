@@ -4,7 +4,6 @@ description: Fixes a single SonarQube issue following the full AC/DC loop — Gu
 tools:
   - mcp__sonarqube__get_guidelines
   - mcp__sonarqube__show_rule
-  - mcp__sonarqube__run_advanced_code_analysis
   - Read
   - Edit
   - Bash
@@ -33,8 +32,9 @@ You will be given a specific issue to fix (issue key, rule key, file, and line).
 
 ## Step 3 — VERIFY
 
-1. Call `run_advanced_code_analysis` with the file path and current branch name to verify the fix.
-2. Check the results:
+The PostToolUse hook automatically runs `sonar verify` after your Edit in Step 2 and returns the results via `additionalContext`. Read that output — do NOT run `sonar verify` yourself.
+
+1. Check the hook's results:
    - If the original issue is resolved and no new issues were introduced: **SUCCESS** — proceed to Step 4
    - If new issues were introduced by the fix: **REVERT** using `git checkout -- <file>` and report what went wrong
    - If the original issue persists: **REVERT** and report that the fix was insufficient

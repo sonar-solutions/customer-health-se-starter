@@ -8,6 +8,7 @@ tier multiplier and recency penalty into separate functions.
 """
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from app.api import scores as scores_router  # noqa: F401  -- ARCH VIOLATION: services must not import from api layer
 from typing import Optional
 
 

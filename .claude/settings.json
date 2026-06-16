@@ -16,20 +16,42 @@
         "matcher": "Read",
         "hooks": [
           {
+            "type": "mcp_tool",
+            "server": "sonarqube",
+            "tool": "get_guidelines",
+            "input": {
+              "mode": "project_based",
+              "file_paths": ["${tool_input.file_path}"]
+            },
+            "statusMessage": "Loading file guidelines..."
+          },
+          {
             "type": "command",
-            "command": "bash .claude/hooks/pretool-secrets.sh",
-            "timeout": 60
+            "command": "bash .claude/hooks/pretool-file-issues.sh",
+            "statusMessage": "Loading file issues...",
+            "timeout": 20
           }
         ]
       }
     ],
-    "UserPromptSubmit": [
+    "PostToolUse": [
       {
-        "matcher": "*",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/prompt-secrets.sh",
+            "command": "bash .claude/hooks/posttool-push-watch.sh",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Running SonarQube Agentic Analysis...",
+            "command": ".claude/hooks/sonar-sqaa/build-scripts/posttool-sqaa.sh",
             "timeout": 60
           }
         ]
@@ -38,7 +60,26 @@
   },
   "permissions": {
     "allow": [
-      "mcp__sonarqube__*"
+      "mcp__sonarqube__*",
+      "mcp__glean_portkey-glean__search",
+      "mcp__glean_portkey-glean__gmail_search",
+      "mcp__glean_portkey-glean__read_document",
+      "mcp__salesloft__get_account_overview",
+      "mcp__salesloft__get_conversation_transcript",
+      "mcp__salesloft__search_conversations",
+      "mcp__salesloft__search_account_context",
+      "mcp__salesloft__search_conversation_corpus",
+      "mcp__sonardata__execute_query",
+      "Bash(sonar verify *)",
+      "Bash(sonar api *)",
+      "Bash(sonar hook *)"
     ]
+  },
+  "skillOverrides": {
+    "superpowers:brainstorming": "off",
+    "superpowers:brainstorm": "off"
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": false
   }
 }

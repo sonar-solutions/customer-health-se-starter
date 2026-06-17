@@ -9,7 +9,7 @@
       ],
       "env": {
         "SONARQUBE_URL": "${SONARQUBE_URL:-https://sonarcloud.io}",
-        "SONARQUBE_TOKEN": "${SONARCLOUD_DEMOS_TOKEN}",
+        "SONARQUBE_TOKEN": "${SONAR_TOKEN}",
         "SONARQUBE_ORG": "${SONARQUBE_ORG}",
         "SONARQUBE_PROJECT_KEY": "${SONARQUBE_PROJECT_KEY}",
         "SONARQUBE_ADVANCED_ANALYSIS_ENABLED": "true"

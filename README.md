@@ -53,15 +53,13 @@ Generate Token (needs **Create Projects + Execute Analysis** on your org).
 
 ### Environment variables
 
-`setup.sh` prints these filled in. One token covers all five — add them to `~/.zshrc` or
-`~/.bashrc` so they persist across shells:
+`setup.sh` prints these filled in — add them to `~/.zshrc` or `~/.bashrc`:
 
 ```bash
-export SONAR_TOKEN=<your-token>             # sonar CLI auth
-export SONARQUBE_CLOUD_TOKEN=<your-token>   # demo-reset.sh
-export SONARCLOUD_DEMOS_TOKEN=<your-token>  # MCP server
-export SONARQUBE_ORG=<your-org>             # MCP server + hooks
-export SONARQUBE_PROJECT_KEY=<your-key>     # MCP server + hooks
+export SONAR_TOKEN=<your-token>          # one token used by sonar CLI, MCP server, and demo-reset.sh
+export SONARQUBE_ORG=<your-org>          # MCP server + hooks
+export SONARQUBE_PROJECT_KEY=<your-key>  # MCP server + hooks
+# export SONARQUBE_URL=<url>             # only if not using sonarcloud.io (e.g. staging)
 ```
 
 ### MCP setup

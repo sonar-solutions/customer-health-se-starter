@@ -108,10 +108,10 @@ echo "Cleaning up stale SonarQube PR analyses..."
 SONAR_HOST="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" url)"
 SONAR_PROJECT="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" key)"
 
-if [[ -z "$SONARQUBE_CLOUD_TOKEN" ]]; then
-  echo "  Skipping: SONARQUBE_CLOUD_TOKEN not set"
+if [[ -z "${SONAR_TOKEN:-}" ]]; then
+  echo "  Skipping: SONAR_TOKEN not set"
 else
-  PR_KEYS=$(curl -sf -u "${SONARQUBE_CLOUD_TOKEN}:" \
+  PR_KEYS=$(curl -sf -u "${SONAR_TOKEN}:" \
     "${SONAR_HOST}/api/project_pull_requests/list?project=${SONAR_PROJECT}" \
     | python3 -c "
 import json,sys
@@ -125,7 +125,7 @@ for pr in prs:
   else
     while IFS= read -r pr_key; do
       [[ -z "$pr_key" ]] && continue
-      if curl -sf -X POST -u "${SONARQUBE_CLOUD_TOKEN}:" \
+      if curl -sf -X POST -u "${SONAR_TOKEN}:" \
         "${SONAR_HOST}/api/project_pull_requests/delete" \
         -d "project=${SONAR_PROJECT}&pullRequest=${pr_key}" > /dev/null 2>&1; then
         echo "  Deleted PR analysis #${pr_key}"

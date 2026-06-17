@@ -11,7 +11,7 @@
 # --url defaults to https://sonarcloud.io. Pass e.g. https://sc-staging.io for staging.
 #
 # Requires: a token with "Create Projects" + "Execute Analysis" on your org,
-# exported as SONARCLOUD_DEMOS_TOKEN (or passed via --token).
+# exported as SONAR_TOKEN (or passed via --token).
 
 set -euo pipefail
 
@@ -21,7 +21,7 @@ SONAR_URL="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" url)"
 ORG=""
 NAME=""
 KEY=""
-TOKEN="${SONARCLOUD_DEMOS_TOKEN:-${SONAR_TOKEN:-}}"
+TOKEN="${SONAR_TOKEN:-}"
 RUN_SCAN="ask"
 
 while [[ $# -gt 0 ]]; do
@@ -116,18 +116,16 @@ mv "$tmp" "$PROPS"
 echo "  done."
 
 # --- Tell the SE what to export ----------------------------------------------
-cat <<EOF
-
-=== Add these to ~/.zshrc (or ~/.bashrc), then restart your shell ===
-
-export SONAR_TOKEN=$TOKEN             # sonar CLI auth
-export SONARQUBE_CLOUD_TOKEN=$TOKEN   # demo-reset.sh
-export SONARCLOUD_DEMOS_TOKEN=$TOKEN  # MCP server
-export SONARQUBE_URL=$SONAR_URL       # MCP server + hooks (omit if using sonarcloud.io default)
-export SONARQUBE_ORG=$ORG             # MCP server + hooks
-export SONARQUBE_PROJECT_KEY=$KEY     # MCP server + hooks
-
-EOF
+echo ""
+echo "=== Add these to ~/.zshrc (or ~/.bashrc), then restart your shell ==="
+echo ""
+echo "export SONAR_TOKEN=$TOKEN             # used by sonar CLI, MCP server, and demo-reset.sh"
+echo "export SONARQUBE_ORG=$ORG             # MCP server + hooks"
+echo "export SONARQUBE_PROJECT_KEY=$KEY     # MCP server + hooks"
+if [[ "$SONAR_URL" != "https://sonarcloud.io" ]]; then
+  echo "export SONARQUBE_URL=$SONAR_URL       # override — only needed when not using sonarcloud.io"
+fi
+echo ""
 
 # --- Optional first scan -----------------------------------------------------
 if [[ "$RUN_SCAN" == "ask" ]]; then

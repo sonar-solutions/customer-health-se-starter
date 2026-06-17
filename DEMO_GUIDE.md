@@ -20,7 +20,7 @@
 > closes any SQRA remediation PRs, and closes any open live-push PR (you'll open a fresh one live in C4).
 > Will warn before discarding uncommitted changes.
 >
-> **Requires:** `SONARQUBE_CLOUD_TOKEN` set in shell (SonarQube Cloud API — for PR analysis cleanup).
+> **Requires:** `SONAR_TOKEN` set in shell (SonarQube Cloud API — for PR analysis cleanup).
 > The SonarQube PR analysis for the new `demo/bad-state` PR takes ~2 min to appear after reset.
 
 --------
@@ -28,7 +28,7 @@
 ## Pre-Demo Checklist (15 min before)
 
 - [ ] `sonar --version` passes (CLI on PATH)
-- [ ] `SONARQUBE_CLOUD_TOKEN` set in shell (SonarQube Cloud REST API — needed for PR analysis cleanup)
+- [ ] `SONAR_TOKEN` set in shell (SonarQube Cloud REST API — needed for PR analysis cleanup)
 - [ ] Run `bash scripts/demo-reset.sh` (see above)
 - [ ] Wait ~2 min for `demo/bad-state` PR analysis to appear in SonarQube Cloud
 - [ ] Start a fresh Claude Code session in this repo directory (SessionStart hook fires on open)

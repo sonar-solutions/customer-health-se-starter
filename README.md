@@ -105,6 +105,16 @@ git push origin main
 
 Your copy is fully independent — you can demo freely without touching the shared repo.
 
+### Toggle demo skills and agents
+
+Between demos (or when doing non-demo work in this repo), you can disable all SonarQube demo-specific skills and agents in one command:
+
+```bash
+bash scripts/demo-mode.sh
+```
+
+Run it again to re-enable. Moves agents between `.claude/agents/` and `.claude/agents.disabled/`, and updates `skillOverrides` in `.claude/settings.local.json`. Restart Claude Code after toggling. Does not affect `/personalize`.
+
 ### Per-SE live-push branch
 
 Required for the Track C architecture-violation beat (C4). Creates a sandbox branch scoped to you:
@@ -147,3 +157,4 @@ This creates `demo/live-push-<yourname>` and wires up the PR.
 | [WORKSHOP_GUIDE.md](WORKSHOP_GUIDE.md) | Facilitator guide for hands-on workshops |
 | [DEMO_APPENDIX.md](DEMO_APPENDIX.md) | Extended beats, agent anatomy, enterprise best practices |
 | [.claude/CLAUDE.md](.claude/CLAUDE.md) | Development reference — architecture rules, tooling, MCP tools |
+| [scripts/demo-mode.sh](scripts/demo-mode.sh) | Toggle demo skills/agents on or off between sessions |

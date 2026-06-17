@@ -76,25 +76,67 @@ if [[ -z "$REPO_SLUG" ]]; then
   REPO_SLUG="$(echo "$NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')"
 fi
 
-SONAR_ORG="$GH_USER"
-SONAR_KEY="${GH_USER}_${REPO_SLUG}"
+SONAR_ORG=""  # resolved after token validation
+SONAR_KEY=""  # derived from org + repo slug
 GH_REPO="${GH_USER}/${REPO_SLUG}"
 
 info "GitHub repo    : https://github.com/$GH_REPO"
-info "SonarCloud key : $SONAR_KEY"
 info "Sonar URL      : $SONAR_URL"
+info "SonarCloud org : (detected from token after validation)"
 
 # --- SonarCloud token --------------------------------------------------------
 if [[ -z "$TOKEN" ]]; then
   echo ""
-  info "No SONAR_TOKEN found. Generate one at:"
-  info "  $SONAR_URL → My Account → Security → Generate Token"
-  info "  (needs Create Projects + Execute Analysis on org '$SONAR_ORG')"
+  info "No SONAR_TOKEN found. Generate one at your SonarQube instance:"
+  info "  My Account → Security → Generate Token"
+  info "  (needs Create Projects + Execute Analysis)"
   read -r -s -p "  Paste token: " TOKEN; echo
 fi
 if [[ -z "$TOKEN" ]]; then
   echo "ERROR: no token provided." >&2
   exit 1
+fi
+
+# --- Auto-detect which SonarQube host the token works against ----------------
+# Only probe if --url was not explicitly passed (i.e. still the resolver default)
+RESOLVER_DEFAULT="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" url)"
+if [[ "$SONAR_URL" == "$RESOLVER_DEFAULT" ]]; then
+  step "Detecting SonarQube host"
+  KNOWN_URLS=("https://sonarcloud.io" "https://sonarqube.us" "https://sc-staging.io")
+  VALID_URLS=()
+  for url in "${KNOWN_URLS[@]}"; do
+    info "Checking $url ..."
+    resp="$(curl -s --max-time 5 -u "$TOKEN:" "$url/api/authentication/validate" 2>/dev/null || true)"
+    if echo "$resp" | grep -q '"valid":true'; then
+      ok "$url — token valid"
+      VALID_URLS+=("$url")
+    else
+      info "  $url — not valid (skipping)"
+    fi
+  done
+
+  if [[ ${#VALID_URLS[@]} -eq 0 ]]; then
+    echo "ERROR: token did not validate against any known SonarQube host." >&2
+    echo "       Try passing --url <host> explicitly, or check your token." >&2
+    exit 1
+  elif [[ ${#VALID_URLS[@]} -eq 1 ]]; then
+    SONAR_URL="${VALID_URLS[0]}"
+    ok "Using: $SONAR_URL"
+  else
+    echo ""
+    echo "  Token is valid on multiple hosts:"
+    for i in "${!VALID_URLS[@]}"; do
+      echo "    $((i+1))) ${VALID_URLS[$i]}"
+    done
+    read -r -p "  Which one should this repo target? [1]: " URL_CHOICE
+    URL_CHOICE="${URL_CHOICE:-1}"
+    if [[ "$URL_CHOICE" -ge 1 && "$URL_CHOICE" -le "${#VALID_URLS[@]}" ]]; then
+      SONAR_URL="${VALID_URLS[$((URL_CHOICE-1))]}"
+      ok "Selected: $SONAR_URL"
+    else
+      echo "ERROR: invalid selection '$URL_CHOICE'" >&2; exit 1
+    fi
+  fi
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -133,14 +175,47 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 step "2/3  SonarCloud project"
 
-info "Validating token against $SONAR_URL..."
-valid_resp="$(curl -s -u "$TOKEN:" "$SONAR_URL/api/authentication/validate")"
-if echo "$valid_resp" | grep -q '"valid":true'; then
-  ok "Token valid."
+info "Looking up your SonarCloud organizations..."
+orgs_resp="$(curl -s -u "$TOKEN:" "$SONAR_URL/api/organizations/search?member=true&ps=50")"
+mapfile -t ORG_KEYS < <(echo "$orgs_resp" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+for o in data.get('organizations', []):
+    print(o['key'])
+" 2>/dev/null)
+mapfile -t ORG_NAMES < <(echo "$orgs_resp" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+for o in data.get('organizations', []):
+    print(o.get('name', o['key']))
+" 2>/dev/null)
+
+if [[ ${#ORG_KEYS[@]} -eq 0 ]]; then
+  warn "Could not detect orgs from token. Using GitHub username as org: $GH_USER"
+  SONAR_ORG="$GH_USER"
+elif [[ ${#ORG_KEYS[@]} -eq 1 ]]; then
+  SONAR_ORG="${ORG_KEYS[0]}"
+  ok "Found 1 org: ${ORG_NAMES[0]} (${ORG_KEYS[0]}) — using it."
 else
-  echo "ERROR: token validation failed. Response: $valid_resp" >&2
-  exit 1
+  echo ""
+  echo "  Your token has access to ${#ORG_KEYS[@]} SonarCloud organizations:"
+  for i in "${!ORG_KEYS[@]}"; do
+    echo "    $((i+1))) ${ORG_NAMES[$i]} — ${ORG_KEYS[$i]}"
+  done
+  echo ""
+  read -r -p "  Which org should the project be created in? [1]: " ORG_CHOICE
+  ORG_CHOICE="${ORG_CHOICE:-1}"
+  if [[ "$ORG_CHOICE" -ge 1 && "$ORG_CHOICE" -le "${#ORG_KEYS[@]}" ]]; then
+    SONAR_ORG="${ORG_KEYS[$((ORG_CHOICE-1))]}"
+    ok "Selected: ${ORG_NAMES[$((ORG_CHOICE-1))]} (${SONAR_ORG})"
+  else
+    echo "ERROR: invalid selection '$ORG_CHOICE'" >&2; exit 1
+  fi
 fi
+
+# Re-derive key now that we have the confirmed org
+SONAR_KEY="${SONAR_ORG}_${REPO_SLUG}"
+info "Project key: $SONAR_KEY"
 
 info "Creating project '$SONAR_KEY' under org '$SONAR_ORG'..."
 create_resp="$(curl -s -u "$TOKEN:" -X POST \

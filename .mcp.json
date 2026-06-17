@@ -8,7 +8,7 @@
         "docker run --init --pull=always -i --rm -e SONARQUBE_TOKEN -e SONARQUBE_URL -e SONARQUBE_ORG -e SONARQUBE_PROJECT_KEY -e SONARQUBE_ADVANCED_ANALYSIS_ENABLED -v \"$(pwd):/app/mcp-workspace:rw\" mcp/sonarqube:latest"
       ],
       "env": {
-        "SONARQUBE_URL": "https://sonarcloud.io",
+        "SONARQUBE_URL": "${SONARQUBE_URL:-https://sonarcloud.io}",
         "SONARQUBE_TOKEN": "${SONARCLOUD_DEMOS_TOKEN}",
         "SONARQUBE_ORG": "${SONARQUBE_ORG}",
         "SONARQUBE_PROJECT_KEY": "${SONARQUBE_PROJECT_KEY}",

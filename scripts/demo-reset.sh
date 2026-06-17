@@ -105,7 +105,7 @@ echo "Then run: /pre-push-review"
 # Clean up stale SonarQube Cloud PR analyses
 echo ""
 echo "Cleaning up stale SonarQube PR analyses..."
-SONAR_HOST="https://sonarcloud.io"
+SONAR_HOST="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" url)"
 SONAR_PROJECT="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" key)"
 
 if [[ -z "$SONARQUBE_CLOUD_TOKEN" ]]; then

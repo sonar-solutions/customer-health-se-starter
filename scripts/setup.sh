@@ -1,19 +1,23 @@
 #!/bin/bash
 # setup.sh — one-time onboarding for an SE adopting this demo repo.
 #
-# Creates YOUR OWN SonarCloud project (so you can run your own PRs without
+# Creates YOUR OWN SonarQube project (so you can run your own PRs without
 # touching anyone else's demo), points this repo at it, and tells you which
 # env vars to export.
 #
 # Usage:
-#   bash scripts/setup.sh --org <your-org> --name "<Project Name>" [--key <project-key>]
+#   bash scripts/setup.sh --org <your-org> --name "<Project Name>" [--key <project-key>] [--url <host>]
 #
-# Requires: a SonarCloud token with "Create Projects" + "Execute Analysis" on
-# your org, exported as SONARCLOUD_DEMOS_TOKEN (or passed via --token).
+# --url defaults to https://sonarcloud.io. Pass e.g. https://sc-staging.io for staging.
+#
+# Requires: a token with "Create Projects" + "Execute Analysis" on your org,
+# exported as SONARCLOUD_DEMOS_TOKEN (or passed via --token).
 
 set -euo pipefail
 
-SONAR_URL="https://sonarcloud.io"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+# Read URL default from resolver (env → properties → built-in default)
+SONAR_URL="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" url)"
 ORG=""
 NAME=""
 KEY=""
@@ -22,11 +26,12 @@ RUN_SCAN="ask"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --org)   ORG="$2"; shift 2 ;;
-    --name)  NAME="$2"; shift 2 ;;
-    --key)   KEY="$2"; shift 2 ;;
-    --token) TOKEN="$2"; shift 2 ;;
-    --scan)  RUN_SCAN="yes"; shift ;;
+    --org)    ORG="$2"; shift 2 ;;
+    --name)   NAME="$2"; shift 2 ;;
+    --key)    KEY="$2"; shift 2 ;;
+    --url)    SONAR_URL="$2"; shift 2 ;;
+    --token)  TOKEN="$2"; shift 2 ;;
+    --scan)   RUN_SCAN="yes"; shift ;;
     --no-scan) RUN_SCAN="no"; shift ;;
     -h|--help)
       grep '^#' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
@@ -34,7 +39,6 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 PROPS="$REPO_ROOT/sonar-project.properties"
 
@@ -61,6 +65,7 @@ fi
 
 echo ""
 echo "=== Setup plan ==="
+echo "  URL          : $SONAR_URL"
 echo "  Organization : $ORG"
 echo "  Project name : $NAME"
 echo "  Project key  : $KEY"
@@ -96,11 +101,18 @@ fi
 # --- Write sonar-project.properties (the single source of truth) -------------
 echo "Updating sonar-project.properties..."
 tmp="$(mktemp)"
+# Update existing lines; append sonar.host.url if not already present
 sed -E \
   -e "s|^sonar\.projectKey[[:space:]]*=.*|sonar.projectKey=$KEY|" \
   -e "s|^sonar\.projectName[[:space:]]*=.*|sonar.projectName=$NAME|" \
   -e "s|^sonar\.organization[[:space:]]*=.*|sonar.organization=$ORG|" \
-  "$PROPS" > "$tmp" && mv "$tmp" "$PROPS"
+  -e "s|^sonar\.host\.url[[:space:]]*=.*|sonar.host.url=$SONAR_URL|" \
+  "$PROPS" > "$tmp"
+# Add sonar.host.url if it wasn't already in the file
+if ! grep -q "^sonar\.host\.url" "$tmp"; then
+  echo "sonar.host.url=$SONAR_URL" >> "$tmp"
+fi
+mv "$tmp" "$PROPS"
 echo "  done."
 
 # --- Tell the SE what to export ----------------------------------------------
@@ -108,11 +120,12 @@ cat <<EOF
 
 === Add these to ~/.zshrc (or ~/.bashrc), then restart your shell ===
 
-export SONAR_TOKEN=$TOKEN            # sonar CLI auth
-export SONARQUBE_CLOUD_TOKEN=$TOKEN  # demo-reset.sh
-export SONARCLOUD_DEMOS_TOKEN=$TOKEN # MCP server
-export SONARQUBE_ORG=$ORG            # MCP server + hooks
-export SONARQUBE_PROJECT_KEY=$KEY    # MCP server + hooks
+export SONAR_TOKEN=$TOKEN             # sonar CLI auth
+export SONARQUBE_CLOUD_TOKEN=$TOKEN   # demo-reset.sh
+export SONARCLOUD_DEMOS_TOKEN=$TOKEN  # MCP server
+export SONARQUBE_URL=$SONAR_URL       # MCP server + hooks (omit if using sonarcloud.io default)
+export SONARQUBE_ORG=$ORG             # MCP server + hooks
+export SONARQUBE_PROJECT_KEY=$KEY     # MCP server + hooks
 
 EOF
 

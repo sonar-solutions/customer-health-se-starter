@@ -74,6 +74,37 @@ bash scripts/demo-reset.sh
 
 Open a fresh Claude Code session. The SessionStart hook outputs live issue counts, coverage/complexity measures, and `MCP: ✓ connected`. If all three appear, you're demo-ready.
 
+### Personal copy (no fork access)
+
+If you don't have fork access to the `sonar-solutions` org, create your own independent copy and keep it synced:
+
+**One-time setup:**
+
+```bash
+# 1. Create a new empty repo on your GitHub account first (no README, no .gitignore)
+
+# 2. Bare-clone and mirror-push
+git clone --bare https://github.com/sonar-solutions/customer-health.git
+cd customer-health.git
+git push --mirror https://github.com/<you>/customer-health.git
+cd .. && rm -rf customer-health.git
+
+# 3. Clone your copy and register the original as upstream
+git clone https://github.com/<you>/customer-health.git
+cd customer-health
+git remote add upstream https://github.com/sonar-solutions/customer-health.git
+```
+
+**Periodic sync** (pull updates from the original into your copy):
+
+```bash
+git fetch upstream
+git rebase upstream/main
+git push origin main
+```
+
+Your copy is fully independent — you can demo freely without touching the shared repo.
+
 ### Per-SE live-push branch
 
 Required for the Track C architecture-violation beat (C4). Creates a sandbox branch scoped to you:

@@ -85,53 +85,48 @@ info "GitHub repo    : https://github.com/$GH_REPO"
 info "Sonar URL      : $SONAR_URL"
 info "SonarCloud org : (detected from token after validation)"
 
-# --- SonarCloud token --------------------------------------------------------
-if [[ -n "$TOKEN" && "$TOKEN_SOURCE" == "env" ]]; then
-  info "Token: found in \$SONAR_TOKEN (press Enter to use it, or paste a new one to override)"
-  read -r -s -p "  Token [current]: " NEW_TOKEN; echo
-  [[ -n "$NEW_TOKEN" ]] && TOKEN="$NEW_TOKEN" && TOKEN_SOURCE="prompt"
-elif [[ -z "$TOKEN" ]]; then
-  info "Token: not set. Generate one at your SonarQube instance:"
-  info "  My Account → Security → Generate Token"
-  info "  (needs Create Projects + Execute Analysis)"
-  read -r -s -p "  Paste token: " TOKEN; echo
-  TOKEN_SOURCE="prompt"
-fi
-# --token flag case: already set, no prompt needed
-if [[ -z "$TOKEN" ]]; then
-  echo "ERROR: no token provided." >&2
-  exit 1
-fi
-ok "Token source: $TOKEN_SOURCE"
-
 # --- Auto-detect which SonarQube host the token works against ----------------
 # Only probe if --url was not explicitly passed (i.e. still the resolver default)
 RESOLVER_DEFAULT="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" url)"
 if [[ "$SONAR_URL" == "$RESOLVER_DEFAULT" ]]; then
   step "Detecting SonarQube host"
-  KNOWN_URLS=("https://sonarcloud.io" "https://sonarqube.us" "https://sc-staging.io")
+
+  # Host → env var that carries the token for that host.
+  # Add a new row here if a new host/token pair is introduced.
+  declare -a KNOWN_URLS=("https://sonarcloud.io" "https://sonarqube.us" "https://sc-staging.io")
+  declare -a KNOWN_VARS=("SONAR_TOKEN"            "SONAR_TOKEN"          "SQC_STAGING_TOKEN")
+
   VALID_URLS=()
-  for url in "${KNOWN_URLS[@]}"; do
-    info "Checking $url ..."
-    resp="$(curl -s --max-time 5 -u "$TOKEN:" "$url/api/authentication/validate" 2>/dev/null || true)"
+  VALID_TOKENS=()
+  for i in "${!KNOWN_URLS[@]}"; do
+    url="${KNOWN_URLS[$i]}"
+    var="${KNOWN_VARS[$i]}"
+    t="${!var:-}"  # indirect expansion: value of the named env var
+    if [[ -z "$t" ]]; then
+      info "$url — skipped (\$$var not set)"
+      continue
+    fi
+    info "Checking $url (using \$$var)..."
+    resp="$(curl -s --max-time 5 -u "$t:" "$url/api/authentication/validate" 2>/dev/null || true)"
     if echo "$resp" | grep -q '"valid":true'; then
-      ok "$url — token valid"
+      ok "$url — valid"
       VALID_URLS+=("$url")
+      VALID_TOKENS+=("$t")
     else
-      info "  $url — not valid (skipping)"
+      info "  $url — token invalid (skipping)"
     fi
   done
 
   if [[ ${#VALID_URLS[@]} -eq 0 ]]; then
-    echo "ERROR: token did not validate against any known SonarQube host." >&2
-    echo "       Try passing --url <host> explicitly, or check your token." >&2
+    echo "ERROR: no known host validated. Set SONAR_TOKEN or SQC_STAGING_TOKEN, or pass --url." >&2
     exit 1
   elif [[ ${#VALID_URLS[@]} -eq 1 ]]; then
     SONAR_URL="${VALID_URLS[0]}"
+    TOKEN="${VALID_TOKENS[0]}"
     ok "Using: $SONAR_URL"
   else
     echo ""
-    echo "  Token is valid on multiple hosts:"
+    echo "  Multiple hosts validated:"
     for i in "${!VALID_URLS[@]}"; do
       echo "    $((i+1))) ${VALID_URLS[$i]}"
     done
@@ -139,12 +134,25 @@ if [[ "$SONAR_URL" == "$RESOLVER_DEFAULT" ]]; then
     URL_CHOICE="${URL_CHOICE:-1}"
     if [[ "$URL_CHOICE" -ge 1 && "$URL_CHOICE" -le "${#VALID_URLS[@]}" ]]; then
       SONAR_URL="${VALID_URLS[$((URL_CHOICE-1))]}"
+      TOKEN="${VALID_TOKENS[$((URL_CHOICE-1))]}"
       ok "Selected: $SONAR_URL"
     else
       echo "ERROR: invalid selection '$URL_CHOICE'" >&2; exit 1
     fi
   fi
 fi
+
+# If --url was passed explicitly, host detection was skipped — ensure we have a token
+if [[ -z "$TOKEN" ]]; then
+  info "No token resolved. Generate one at: $SONAR_URL → My Account → Security → Generate Token"
+  info "(needs Create Projects + Execute Analysis)"
+  read -r -s -p "  Paste token: " TOKEN; echo
+  TOKEN_SOURCE="prompt"
+fi
+if [[ -z "$TOKEN" ]]; then
+  echo "ERROR: no token provided." >&2; exit 1
+fi
+ok "Token: $TOKEN_SOURCE (${TOKEN:0:4})•••• (for $SONAR_URL)"
 
 # ─────────────────────────────────────────────────────────────────────────────
 step "1/3  GitHub repo"

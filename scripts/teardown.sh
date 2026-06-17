@@ -44,7 +44,7 @@ PROPS="$REPO_ROOT/sonar-project.properties"
 
 # --- Read current config from properties -------------------------------------
 prop() {
-  grep -E "^$1[[:space:]]*=" "$PROPS" 2>/dev/null | head -1 \
+  { grep -E "^$1[[:space:]]*=" "$PROPS" 2>/dev/null || true; } | head -1 \
     | sed -E "s/^$1[[:space:]]*=[[:space:]]*//" | sed -E 's/[[:space:]]+$//'
 }
 

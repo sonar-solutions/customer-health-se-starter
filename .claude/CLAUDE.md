@@ -9,6 +9,16 @@
 FE/BE monorepo: FastAPI backend (Python) + React/TypeScript frontend.
 Demo project for the SonarQube MCP + CLI tool suite — `main` branch contains a realistic issue mix across Python and TypeScript.
 
+## Demo Mode
+
+Toggle SonarQube demo skills and agents on/off between sessions:
+
+```bash
+bash scripts/demo-mode.sh
+```
+
+Moves agents between `.claude/agents/` and `.claude/agents.disabled/`, and sets skillOverrides in `.claude/settings.local.json`. Restart Claude Code after running. Does not affect `/personalize`.
+
 ## Mandatory SonarQube Workflow
 
 ### Before editing any file

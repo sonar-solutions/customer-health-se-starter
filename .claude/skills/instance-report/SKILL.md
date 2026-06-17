@@ -4,8 +4,7 @@ description: >
   Instance-wide admin report across all projects in a SonarQube org or server.
   Triggered by: /instance-report, "show me the full instance report", "admin report",
   "how is our instance doing", "give me an org-level report", "instance health".
-  Different from /sonar-audit: this covers ALL projects as an admin view, not a single
-  project as a developer. Designed for SonarQube admins and engineering leaders.
+  Admin view across ALL projects in an org — not a single project. Designed for SonarQube admins and engineering leaders.
 tools:
   - Bash
   - mcp__sonarqube__search_security_hotspots

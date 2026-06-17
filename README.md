@@ -33,26 +33,45 @@ See [DEMO_GUIDE.md](DEMO_GUIDE.md) for the full script, track timings, and Q&A p
 - [Claude Code](https://claude.ai/code)
 - GitHub CLI: https://cli.github.com — run `gh auth login` after installing
 - SonarQube CLI — run `/plugin install sonarqube@sonar` inside Claude Code
+- A SonarCloud account with an organization you can create projects in
 
 > `.venv` and `node_modules` are pre-committed — no `pip install` or `npm install` needed.
 
-### Environment variables
+### Create your own SonarCloud project (run this first)
 
-One SonarQube Cloud token covers all three. Generate one at sonarcloud.io → My Account → Security → Generate Token (needs Admin + Execute Analysis on the `sonar-solutions` org).
+Each SE manages their own PRs, so each needs their **own** SonarCloud project. The setup script
+creates it, points the repo at it, and tells you which env vars to export:
 
 ```bash
-export SONAR_TOKEN=<your-token>            # sonar CLI auth
-export SONARQUBE_CLOUD_TOKEN=<your-token>  # demo-reset.sh
-export SONARCLOUD_DEMOS_TOKEN=<your-token> # MCP server
+bash scripts/setup.sh --org <your-sonarcloud-org> --name "Customer Health Scorecard"
 ```
 
-Add all three to `~/.zshrc` or `~/.bashrc` so they persist across shells.
+It validates your token, creates the project (idempotent — reuses if it exists), writes the key +
+org into `sonar-project.properties` (the single source of truth every hook and script reads), and
+prints the `export` block below. Generate a token first at sonarcloud.io → My Account → Security →
+Generate Token (needs **Create Projects + Execute Analysis** on your org).
+
+### Environment variables
+
+`setup.sh` prints these filled in. One token covers all five — add them to `~/.zshrc` or
+`~/.bashrc` so they persist across shells:
+
+```bash
+export SONAR_TOKEN=<your-token>             # sonar CLI auth
+export SONARQUBE_CLOUD_TOKEN=<your-token>   # demo-reset.sh
+export SONARCLOUD_DEMOS_TOKEN=<your-token>  # MCP server
+export SONARQUBE_ORG=<your-org>             # MCP server + hooks
+export SONARQUBE_PROJECT_KEY=<your-key>     # MCP server + hooks
+```
 
 ### MCP setup
 
-`.mcp.json` is committed and uses `$(pwd)` — no path editing needed. Claude Code picks it up automatically when you open the repo.
+`.mcp.json` is committed and reads your org + project key from the `SONARQUBE_ORG` /
+`SONARQUBE_PROJECT_KEY` env vars (set above), and mounts the repo via `$(pwd)` — no path editing
+needed. Claude Code picks it up automatically when you open the repo.
 
-If MCP shows `✗ not connected` at session start, run `/mcp` inside Claude Code to diagnose.
+If MCP shows `✗ not connected` at session start, confirm those env vars are exported in your
+shell, then run `/mcp` inside Claude Code to diagnose.
 
 ### Start the app
 
@@ -76,7 +95,9 @@ Open a fresh Claude Code session. The SessionStart hook outputs live issue count
 
 ### Personal copy (no fork access)
 
-If you don't have fork access to the `sonar-solutions` org, create your own independent copy and keep it synced:
+If you don't have fork access to the `sonar-solutions` org, create your own independent **git** copy
+and keep it synced. (After cloning your copy, run `bash scripts/setup.sh` above to point it at your
+own SonarCloud project.)
 
 **One-time setup:**
 
@@ -153,8 +174,9 @@ This creates `demo/live-push-<yourname>` and wires up the PR.
 
 | File | Purpose |
 |------|---------|
-| [DEMO_GUIDE.md](DEMO_GUIDE.md) | Full demo script — framing, track beats, Q&A prep, troubleshooting |
-| [WORKSHOP_GUIDE.md](WORKSHOP_GUIDE.md) | Facilitator guide for hands-on workshops |
-| [DEMO_APPENDIX.md](DEMO_APPENDIX.md) | Extended beats, agent anatomy, enterprise best practices |
+| [DEMO_GUIDE.md](DEMO_GUIDE.md) | Full demo script — framing, track beats, Q&A prep, troubleshooting, agent anatomy |
+| [WORKSHOP_GUIDE.md](WORKSHOP_GUIDE.md) | Lite facilitator guide — prompts-only, no custom skills required (Cloud) |
+| [WORKSHOP_GUIDE_SQS.md](WORKSHOP_GUIDE_SQS.md) | Server-variant workshop — `sonar api`, no Docker, CAG/SQAA caveats |
 | [.claude/CLAUDE.md](.claude/CLAUDE.md) | Development reference — architecture rules, tooling, MCP tools |
+| [scripts/setup.sh](scripts/setup.sh) | One-time SE setup — creates your SonarCloud project, sets config |
 | [scripts/demo-mode.sh](scripts/demo-mode.sh) | Toggle demo skills/agents on or off between sessions |

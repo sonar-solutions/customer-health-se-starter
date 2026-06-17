@@ -3,7 +3,10 @@ if ! command -v sonar &> /dev/null; then
   exit 0
 fi
 
-output=$(cat | sonar hook claude-post-tool-use --project sonar-solutions_Health-Dashboard 2>&1)
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+PROJECT="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" key)"
+
+output=$(cat | sonar hook claude-post-tool-use --project "$PROJECT" 2>&1)
 
 if echo "$output" | grep -qi "no issues found"; then
   echo "SonarQube SQAA: ✅ no issues found"

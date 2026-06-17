@@ -27,9 +27,9 @@ Apply the fix following the SonarQube rule's remediation guidance. Keep changes 
 ### Step 5 — Verify
 Run `sonar verify <file-path>` using the sonar CLI to confirm the specific issue is resolved:
 ```
-export PATH="/Users/theil.bise/.local/share/sonarqube-cli/bin:$PATH"
 sonar verify <file-path>
 ```
+(Install the CLI with `/plugin install sonarqube@sonar` inside Claude Code if `sonar` isn't on your PATH.)
 
 ### Step 6 — Report
 Output a concise summary:

@@ -1,8 +1,13 @@
 # SonarQube in AI-Assisted Development — Workshop Guide (SonarQube Server)
 
-**Format:** Facilitator-led · **Duration:** ~45 min · **Project:** sonar-solutions_Health-Dashboard
+**Format:** Facilitator-led · **Duration:** ~45 min · **Complexity:** Lite-to-moderate — CLI and standard MCP tools; CAG and SQAA are Cloud-only and marked where they differ
+
 **Audience:** SonarQube Server (on-prem) teams evaluating AI-assisted development workflows
 **IDE:** Kiro + Amazon Q · **Constraint:** No Docker on dev machines
+
+> **Using this guide:**
+> - **Cloud audience?** Use [WORKSHOP_GUIDE.md](WORKSHOP_GUIDE.md) (lite) or [DEMO_GUIDE.md](DEMO_GUIDE.md) (full infrastructure).
+> - **Personalizing for a customer?** Run `/personalize <customer>` — it reads all three guides and selects by complexity × platform (Cloud/Server).
 
 **Before starting:** `bash scripts/demo-reset.sh` · Open fresh Claude Code session · Confirm MCP connection
 
@@ -70,13 +75,13 @@ You can also mention the `PreToolUse` hook: the same scanning runs before Claude
 
 ```bash
 # Quality gate status for a project
-sonar api get "/api/qualitygates/project_status?projectKey=sonar-solutions_Health-Dashboard"
+sonar api get "/api/qualitygates/project_status?projectKey=$SONARQUBE_PROJECT_KEY"
 
 # Open issues by severity
-sonar api get "/api/issues/search?componentKeys=sonar-solutions_Health-Dashboard&severities=BLOCKER,CRITICAL&statuses=OPEN"
+sonar api get "/api/issues/search?componentKeys=$SONARQUBE_PROJECT_KEY&severities=BLOCKER,CRITICAL&statuses=OPEN"
 
 # Multi-metric snapshot
-sonar api get "/api/measures/component?component=sonar-solutions_Health-Dashboard&metricKeys=coverage,bugs,vulnerabilities,code_smells"
+sonar api get "/api/measures/component?component=$SONARQUBE_PROJECT_KEY&metricKeys=coverage,bugs,vulnerabilities,code_smells"
 ```
 
 **Point out:**
@@ -105,9 +110,9 @@ sonar api get "/api/measures/component?component=sonar-solutions_Health-Dashboar
 > "The developer gets a blocking security finding, the root cause, and a fix — all from a single question, before the PR is merged. No UI, no ticket, no context switch."
 
 **Run:**
-> `/sonar-audit`
+> "What's the current quality gate status and top open issues for this project?"
 
-**Point out:** The skill calls quality gate status, component metrics, open issues by severity, and security hotspots — then formats a structured report. This is what a tech lead would run instead of clicking through the SonarQube UI.
+**Point out:** Claude calls `get_project_quality_gate_status` and `search_sonar_issues_in_projects` — the same data as the SonarQube UI, now accessible mid-session without a browser. This is what a tech lead would ask instead of navigating to the dashboard.
 
 > "One command, structured output. Your technical leads can run this from their IDE or terminal — or it can be the backend of an Amazon Q action that answers 'how is our codebase doing?' in natural language."
 
@@ -141,7 +146,7 @@ Claude calls `check_dependency` with `pkg:pypi/requests@2.18.4`. **Point out:**
 **Run** (this runs against SonarQube Cloud — showing what it would look like):
 
 ```bash
-sonar verify --file frontend/src/services/api.ts --project sonar-solutions_Health-Dashboard
+sonar verify --file frontend/src/services/api.ts --project $SONARQUBE_PROJECT_KEY
 ```
 
 **Point out:** ReDoS vulnerability on line 7 — the `validateProjectKey` regex has catastrophic backtracking. Output is structured: rule, line, severity, category.

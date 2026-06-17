@@ -21,11 +21,9 @@ DEMO_SKILLS=(
   "instance-report"
   "pre-push-review"
   "security-posture"
-  "sonar-audit"
   "sonar-blitz"
   "sonar-fix"
   "sonar-onboard"
-  "sonar-watch"
   "tech-debt-sprint"
 )
 

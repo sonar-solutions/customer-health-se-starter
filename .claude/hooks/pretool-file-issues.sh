@@ -4,11 +4,15 @@ file_path=$(cat | jq -r '.tool_input.file_path // empty' 2>/dev/null)
 [ -z "$file_path" ] && exit 0
 command -v sonar &>/dev/null || exit 0
 
-python3 - "$file_path" <<'EOF'
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+project="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" key)"
+[ -z "$project" ] && exit 0
+
+python3 - "$file_path" "$project" <<'EOF'
 import json, subprocess, sys, os
 
 file_path = sys.argv[1]
-project = "sonar-solutions_Health-Dashboard"
+project = sys.argv[2]
 
 try:
     r = subprocess.run(

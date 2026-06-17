@@ -1,14 +1,17 @@
-# SonarQube in AI-Assisted Development — Workshop Outline
+# SonarQube in AI-Assisted Development — Workshop Guide (Lite)
 
-**Format:** Facilitator-led · **Duration:** ~45 min · **Project:** sonar-solutions_Health-Dashboard
+**Format:** Facilitator-led · **Duration:** ~45 min · **Complexity:** Lite — prompts and built-in tools only, no custom skills or agents required
 
-**Audience:** Teams in AC/DC maturity levels 1 & 2 with familiarity with SQ
+**Audience:** Teams exploring or piloting AI coding tools (AC/DC maturity 1–2). Works for any SonarQube Cloud audience regardless of current AI tooling.
 
-> **TODO:** more definition around who this workshop is for
+> **Using this guide:**
+> - **High agentic maturity / full demo?** Use [DEMO_GUIDE.md](DEMO_GUIDE.md) — full infrastructure, all tracks, agent anatomy.
+> - **SonarQube Server (on-prem) audience?** Use [WORKSHOP_GUIDE_SQS.md](WORKSHOP_GUIDE_SQS.md) — no Docker, `sonar api`, Server-specific framing.
+> - **Personalizing for a customer?** Run `/personalize <customer>` — it reads all three guides.
 
 **Before starting:** `bash scripts/demo-reset.sh` · Open fresh Claude Code session · Confirm MCP connection
 
-**Fork:** https://github.com/sonar-solutions/Health-Dashboard — if you don't have fork access, follow the [personal copy setup](README.md#personal-copy-no-fork-access) in the README.
+**Repo:** if you don't have fork access to the shared project, follow [personal copy setup](README.md#personal-copy-no-fork-access) then run `bash scripts/setup.sh` to create your own SonarCloud project.
 
 ---
 
@@ -43,7 +46,7 @@ Name and show the components before they appear live. Audiences follow the demo 
 
 - **Run:**
   ```bash
-  sonar verify --file backend/app/clients/sonarqube_client.py --project sonar-solutions_Health-Dashboard
+  sonar verify --file backend/app/clients/sonarqube_client.py --project $SONARQUBE_PROJECT_KEY
   ```
 - **Point out:** Hardcoded credential on line 10, token passed as query param on line 19. Output is structured: rule, line, severity.
 - **Run** (paste into Claude Code prompt):
@@ -89,9 +92,9 @@ Name and show the components before they appear live. Audiences follow the demo 
 
 **Run:** *"Fix the highest-severity open issue in this project."*
 
-**Point out:** `get_guidelines` → edit → `sonar verify`. Show the clean result.
+**Point out:** `get_guidelines` → edit → `sonar verify`. Show the clean result. *(This is the lite beat — pure prompt, no custom skill.)*
 
-**Run:** `/sonar-fix`
+**Run (optional — only if the team has adopted skills):** `/sonar-fix`
 
 **Say:** *"Same loop, packaged as a single command. This is a markdown file in `.claude/skills/` committed to the repo. The SonarQube Remediation Agent is this same pattern running natively on PRs — without a developer in the loop."*
 

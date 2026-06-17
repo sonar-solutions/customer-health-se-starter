@@ -106,7 +106,7 @@ echo "Then run: /pre-push-review"
 echo ""
 echo "Cleaning up stale SonarQube PR analyses..."
 SONAR_HOST="https://sonarcloud.io"
-SONAR_PROJECT="sonar-solutions_Health-Dashboard"
+SONAR_PROJECT="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" key)"
 
 if [[ -z "$SONARQUBE_CLOUD_TOKEN" ]]; then
   echo "  Skipping: SONARQUBE_CLOUD_TOKEN not set"
@@ -215,5 +215,5 @@ if [[ -n "$SE_NAME" ]]; then
 
   echo "Live-push branch ready: ${LIVE_BRANCH}"
   echo "During the demo: git checkout ${LIVE_BRANCH} && git push origin ${LIVE_BRANCH}"
-  echo "Then open a PR and run /sonar-watch once CI completes."
+  echo "Then open a PR and check the quality gate in SonarQube Cloud once CI completes."
 fi

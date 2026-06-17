@@ -10,8 +10,8 @@
       "env": {
         "SONARQUBE_URL": "https://sonarcloud.io",
         "SONARQUBE_TOKEN": "${SONARCLOUD_DEMOS_TOKEN}",
-        "SONARQUBE_ORG": "sonar-solutions",
-        "SONARQUBE_PROJECT_KEY": "sonar-solutions_Health-Dashboard",
+        "SONARQUBE_ORG": "${SONARQUBE_ORG}",
+        "SONARQUBE_PROJECT_KEY": "${SONARQUBE_PROJECT_KEY}",
         "SONARQUBE_ADVANCED_ANALYSIS_ENABLED": "true"
       },
       "alwaysLoad": true

@@ -5,8 +5,7 @@ description: >
   quality standards, and issue landscape, then synthesizes a project orientation.
   Triggered by: /sonar-onboard, "I'm new to this project", "give me an overview",
   "onboard me", "what do I need to know about this codebase".
-  Different from /sonar-audit: this focuses on HOW TO WORK HERE (architecture,
-  workflow, standards), not WHAT'S BROKEN (issues, risks).
+  Focuses on HOW TO WORK HERE (architecture, workflow, standards), not just what's broken.
 tools:
   - Agent
   - Read
@@ -14,7 +13,7 @@ tools:
 
 # /sonar-onboard — Developer Onboarding Briefing
 
-Produces a living project orientation by spawning three parallel research agents. Focuses on *how to work here* — architecture, quality standards, workflow conventions — not on what's broken (that's `/sonar-audit`).
+Produces a living project orientation by spawning three parallel research agents. Focuses on *how to work here* — architecture, quality standards, workflow conventions — not just listing open issues.
 
 ## Trigger
 
@@ -99,7 +98,7 @@ YOUR FIRST TASK
     Fix it with: /sonar-fix <issue-key>
 
 USEFUL COMMANDS
-  /sonar-audit        — quick risk overview (what's broken)
+  /sonar-fix          — fix the highest-severity open issue
   /sonar-fix          — fix the top issue
   /pre-push-review    — check your changes before pushing
   /security-posture   — deep security assessment

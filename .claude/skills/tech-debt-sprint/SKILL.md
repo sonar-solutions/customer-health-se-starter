@@ -23,7 +23,7 @@ Uses a two-wave agent orchestration pattern to produce a prioritized tech debt r
 /tech-debt-sprint (orchestrator)
     │
     ├── WAVE 1 (parallel)
-    │   ├── metrics-analyzer agent     ── health dashboard
+    │   ├── health-analyzer agent      ── health dashboard + coverage + quality gate
     │   └── debt-hotspot-finder agent  ── top 5 debt files
     │
     ├── WAVE 2 (sequential, uses Wave 1 results)
@@ -38,7 +38,7 @@ Uses a two-wave agent orchestration pattern to produce a prioritized tech debt r
 
 Launch two agents **in parallel** using a single message with multiple Agent tool calls:
 
-1. **metrics-analyzer agent** — gather coverage, complexity, duplication, quality gate status
+1. **health-analyzer agent** — gather coverage, complexity, duplication, quality gate status
 2. **debt-hotspot-finder agent** — find the top 5 files by bug/code-smell density
 
 ### Step 2 — Wave 2: Trace blast radius (sequential)
@@ -53,7 +53,7 @@ Combine all three agent reports into a single prioritized remediation plan:
 TECH DEBT SPRINT REPORT
 ========================
 
-PROJECT HEALTH (from metrics-analyzer)
+PROJECT HEALTH (from health-analyzer)
   Quality Gate: [PASSED / FAILED]
   Coverage: <N>% | Duplication: <N>% | Complexity: <N>
   Bugs: <N> | Code Smells: <N>
@@ -82,7 +82,7 @@ PRIORITIZED REMEDIATION PLAN
 
 ## Error Handling
 
-- If Wave 1 metrics-analyzer fails, proceed with hotspot data only
+- If Wave 1 health-analyzer fails, proceed with hotspot data only
 - If Wave 1 debt-hotspot-finder fails, skip Wave 2 (no targets for blast radius)
 - If Wave 2 blast-radius-tracer fails, report hotspots without dependency ranking
 - Always produce a report with whatever data is available

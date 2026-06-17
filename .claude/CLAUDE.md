@@ -1,8 +1,8 @@
 # Customer Health Scorecard — Claude Code Guide
 
 ## Project Info
-- **SonarQube project key:** `sonar-solutions_Health-Dashboard`
-- **SonarQube org:** `sonar-solutions`
+- **SonarQube project key:** set in `sonar-project.properties` (run `scripts/setup.sh` to configure your own project)
+- **SonarQube org:** set in `sonar-project.properties`
 - **MCP server:** sonarqube (available in this session)
 
 ## Project Overview
@@ -77,10 +77,9 @@ npx vitest run --coverage
 - Metrics / coverage → `get_component_measures`, `get_project_quality_gate_status`
 
 ## Local SonarQube Scan
+Project key and org are read from `sonar-project.properties` (the single source of truth — set by `scripts/setup.sh`).
 ```bash
-sonar-scanner \
-  -Dsonar.projectKey=customer-health-scorecard \
-  -Dsonar.token=$SONAR_TOKEN
+sonar-scanner -Dsonar.token=$SONAR_TOKEN
 ```
 
 ## Architecture Rules
@@ -107,7 +106,6 @@ sonar-scanner \
 | `blast-radius-tracer` | Map upstream callers and dependency impact | `get_upstream_call_flow`, `get_references` |
 | `issue-fixer` | Fix a single issue with full AC/DC loop | `get_guidelines`, `show_rule`, `sonar verify` (CLI) |
 | `health-analyzer` | Comprehensive health: metrics, coverage gaps, duplication, issue concentration | `get_component_measures`, `get_project_quality_gate_status`, `search_sonar_issues_in_projects` |
-| `metrics-analyzer` | Lightweight metrics dashboard | `get_component_measures`, `get_project_quality_gate_status` |
 | `debt-hotspot-finder` | Top files by bug/code-smell density | `search_sonar_issues_in_projects`, `get_source_code` |
 
 ## Skills (.claude/skills/)
@@ -115,11 +113,9 @@ sonar-scanner \
 | Skill | Audience | Purpose |
 |-------|----------|---------|
 | `pre-push-review` | Developer | Analyze changed files before pushing — issues, arch violations, SCA |
-| `sonar-audit` | Developer | Quick single-project risk snapshot — what's broken right now |
 | `sonar-onboard` | Developer (new) | Project orientation — architecture, standards, workflow |
 | `sonar-fix` | Developer | Fix a single SonarQube issue with full AC/DC loop |
 | `sonar-blitz` | Developer | Fix multiple issues in parallel across files |
-| `sonar-watch` | Developer | Post-push QG check — CI status, new issues, recommended fixes |
 | `security-posture` | Security / Lead | Full attack surface + reachability assessment (3-agent) |
 | `tech-debt-sprint` | Tech Lead | Prioritized debt analysis with blast radius (2-wave) |
 | `arch-guard` | Tech Lead | Architecture compliance check against defined constraints |

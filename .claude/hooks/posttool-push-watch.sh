@@ -1,5 +1,5 @@
 #!/bin/bash
-# PostToolUse hook: Detect git push and prompt /sonar-watch if SonarQube CI check exists
+# PostToolUse hook: Detect git push and notify when SonarQube CI check is found on the PR
 
 # Only fire on Bash tool calls
 stdin_data=$(cat)
@@ -31,7 +31,7 @@ if ! echo "$checks" | grep -qi "sonar"; then
 fi
 
 # Return prompt to Claude
-msg="git push detected. SonarQube CI check found on PR #${pr_number}. Run /sonar-watch to check the quality gate once CI completes."
+msg="git push detected. SonarQube CI check found on PR #${pr_number}. Check the quality gate in SonarQube Cloud once CI completes (~2 min)."
 escaped=$(printf '%s' "$msg" | awk 'BEGIN{ORS=""} {gsub(/\\/, "\\\\"); gsub(/"/, "\\\""); gsub(/\t/, "\\t"); gsub(/\r/, "\\r"); if(NR>1) printf "\\n"; print}')
 printf '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"%s"}}\n' "$escaped"
 exit 0

@@ -263,6 +263,16 @@ fi
 mv "$tmp" "$PROPS"
 ok "sonar-project.properties updated."
 
+info "Committing sonar-project.properties..."
+git add "$PROPS"
+git commit -m "chore(setup): configure SonarQube project for $GH_USER
+
+Project key: $SONAR_KEY
+Org:         $SONAR_ORG
+URL:         $SONAR_URL" --no-verify
+git push origin main --quiet
+ok "Committed and pushed."
+
 # ─────────────────────────────────────────────────────────────────────────────
 step "3/3  Demo PRs + live-push branch"
 

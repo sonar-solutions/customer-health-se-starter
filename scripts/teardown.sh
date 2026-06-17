@@ -78,9 +78,16 @@ elif [[ -z "$GH_REPO" || "$GH_REPO" == *"sonar-solutions"* ]]; then
   warn "Origin looks like the shared sonar-solutions repo — skipping deletion for safety."
 else
   info "Deleting https://github.com/$GH_REPO ..."
-  GITHUB_TOKEN="" gh repo delete "$GH_REPO" --yes \
-    && ok "Deleted $GH_REPO." \
-    || warn "Could not delete $GH_REPO — may already be gone."
+  delete_out="$(GITHUB_TOKEN="" gh repo delete "$GH_REPO" --yes 2>&1)" && ok "Deleted $GH_REPO." || {
+    if echo "$delete_out" | grep -q "delete_repo"; then
+      warn "Missing 'delete_repo' scope. Grant it once with:"
+      info "  gh auth refresh -h github.com -s delete_repo"
+      info "Then re-run teardown.sh, or delete the repo manually at:"
+      info "  https://github.com/$GH_REPO/settings"
+    else
+      warn "Could not delete $GH_REPO: $delete_out"
+    fi
+  }
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -43,6 +43,7 @@ SONAR_URL="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" url)"
 NAME=""
 REPO_SLUG=""
 TOKEN="${SONAR_TOKEN:-}"
+TOKEN_SOURCE="env"
 RUN_SCAN="ask"
 
 while [[ $# -gt 0 ]]; do
@@ -50,7 +51,7 @@ while [[ $# -gt 0 ]]; do
     --name)    NAME="$2"; shift 2 ;;
     --repo)    REPO_SLUG="$2"; shift 2 ;;
     --url)     SONAR_URL="$2"; shift 2 ;;
-    --token)   TOKEN="$2"; shift 2 ;;
+    --token)   TOKEN="$2"; TOKEN_SOURCE="flag"; shift 2 ;;
     --scan)    RUN_SCAN="yes"; shift ;;
     --no-scan) RUN_SCAN="no"; shift ;;
     -h|--help) grep '^#' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
@@ -85,17 +86,23 @@ info "Sonar URL      : $SONAR_URL"
 info "SonarCloud org : (detected from token after validation)"
 
 # --- SonarCloud token --------------------------------------------------------
-if [[ -z "$TOKEN" ]]; then
-  echo ""
-  info "No SONAR_TOKEN found. Generate one at your SonarQube instance:"
+if [[ -n "$TOKEN" && "$TOKEN_SOURCE" == "env" ]]; then
+  info "Token: found in \$SONAR_TOKEN (press Enter to use it, or paste a new one to override)"
+  read -r -s -p "  Token [current]: " NEW_TOKEN; echo
+  [[ -n "$NEW_TOKEN" ]] && TOKEN="$NEW_TOKEN" && TOKEN_SOURCE="prompt"
+elif [[ -z "$TOKEN" ]]; then
+  info "Token: not set. Generate one at your SonarQube instance:"
   info "  My Account → Security → Generate Token"
   info "  (needs Create Projects + Execute Analysis)"
   read -r -s -p "  Paste token: " TOKEN; echo
+  TOKEN_SOURCE="prompt"
 fi
+# --token flag case: already set, no prompt needed
 if [[ -z "$TOKEN" ]]; then
   echo "ERROR: no token provided." >&2
   exit 1
 fi
+ok "Token source: $TOKEN_SOURCE"
 
 # --- Auto-detect which SonarQube host the token works against ----------------
 # Only probe if --url was not explicitly passed (i.e. still the resolver default)
@@ -275,17 +282,40 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-step "Done — export these env vars"
+step "Done — env vars"
+
+ENV_LINES=()
+ENV_LINES+=("export SONAR_TOKEN=$TOKEN")
+ENV_LINES+=("export SONARQUBE_ORG=$SONAR_ORG")
+ENV_LINES+=("export SONARQUBE_PROJECT_KEY=$SONAR_KEY")
+[[ "$SONAR_URL" != "https://sonarcloud.io" ]] && ENV_LINES+=("export SONARQUBE_URL=$SONAR_URL")
 
 echo ""
-echo "  export SONAR_TOKEN=$TOKEN"
-echo "  export SONARQUBE_ORG=$SONAR_ORG"
-echo "  export SONARQUBE_PROJECT_KEY=$SONAR_KEY"
-if [[ "$SONAR_URL" != "https://sonarcloud.io" ]]; then
-  echo "  export SONARQUBE_URL=$SONAR_URL"
+for line in "${ENV_LINES[@]}"; do echo "  $line"; done
+echo ""
+
+# Offer to write directly to ~/.zshrc / ~/.bashrc
+SHELL_RC=""
+if [[ -f "$HOME/.zshrc" ]]; then SHELL_RC="$HOME/.zshrc"
+elif [[ -f "$HOME/.bashrc" ]]; then SHELL_RC="$HOME/.bashrc"; fi
+
+if [[ -n "$SHELL_RC" ]]; then
+  read -r -p "  Write these to $SHELL_RC now? (Y/n) " WRITE_RC
+  WRITE_RC="${WRITE_RC:-Y}"
+  if [[ "$WRITE_RC" =~ ^[Yy]$ ]]; then
+    echo "" >> "$SHELL_RC"
+    echo "# SonarQube demo — added by scripts/setup.sh" >> "$SHELL_RC"
+    for line in "${ENV_LINES[@]}"; do echo "$line" >> "$SHELL_RC"; done
+    ok "Written to $SHELL_RC"
+    info "Run: source $SHELL_RC"
+  else
+    info "Skipped. Add the lines above to $SHELL_RC manually."
+  fi
+else
+  info "Add the lines above to your shell rc file manually."
 fi
+
 echo ""
-echo "  Add to ~/.zshrc, then restart your shell."
-echo ""
-echo "Next: open a fresh Claude Code session in this repo."
-echo "The SessionStart hook should show issue counts + 'MCP: ✓ connected'."
+echo "Next: source $SHELL_RC (or restart your shell), then open a fresh"
+echo "Claude Code session in this repo. The SessionStart hook should show"
+echo "issue counts + 'MCP: ✓ connected'."

@@ -48,28 +48,17 @@ prop() {
     | sed -E "s/^$1[[:space:]]*=[[:space:]]*//" | sed -E 's/[[:space:]]+$//'
 }
 
-STATE_FILE="$REPO_ROOT/.claude/setup-state.json"
-
-# Read from setup-state.json if present (survives properties reset); fall back to properties
-if [[ -f "$STATE_FILE" ]]; then
-  GH_REPO="$(python3  -c "import json; d=json.load(open('$STATE_FILE')); print(d.get('github_repo',''))"  2>/dev/null || true)"
-  SONAR_KEY="$(python3 -c "import json; d=json.load(open('$STATE_FILE')); print(d.get('sonar_key',''))"   2>/dev/null || true)"
-  SONAR_ORG="$(python3 -c "import json; d=json.load(open('$STATE_FILE')); print(d.get('sonar_org',''))"   2>/dev/null || true)"
-  SONAR_URL="$(python3 -c "import json; d=json.load(open('$STATE_FILE')); print(d.get('sonar_url',''))"   2>/dev/null || true)"
-  info "Reading setup state from .claude/setup-state.json"
-else
-  SONAR_KEY="$(prop 'sonar\.projectKey')"
-  SONAR_ORG="$(prop 'sonar\.organization')"
-  SONAR_URL="$(prop 'sonar\.host\.url')"
-  # Derive GitHub repo from key when state file is absent
-  if [[ -n "$SONAR_KEY" && "$SONAR_KEY" != "sonar-solutions_Health-Dashboard" ]]; then
-    GH_REPO="$(echo "$SONAR_KEY" | cut -d_ -f1)/$(echo "$SONAR_KEY" | cut -d_ -f2-)"
-  else
-    GH_REPO=""
-  fi
-  warn "No setup-state.json found — falling back to sonar-project.properties."
-fi
+SONAR_KEY="$(prop 'sonar\.projectKey')"
+SONAR_ORG="$(prop 'sonar\.organization')"
+SONAR_URL="$(prop 'sonar\.host\.url')"
 SONAR_URL="${SONAR_URL:-https://sonarcloud.io}"
+
+# Derive GitHub repo from project key (<org>_<slug> → <org>/<slug>)
+if [[ -n "$SONAR_KEY" && "$SONAR_KEY" != "sonar-solutions_Health-Dashboard" ]]; then
+  GH_REPO="$(echo "$SONAR_KEY" | cut -d_ -f1)/$(echo "$SONAR_KEY" | cut -d_ -f2-)"
+else
+  GH_REPO=""
+fi
 
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║          SonarQube Demo Repo — Teardown              ║"
@@ -157,16 +146,9 @@ info "Resetting git origin → sonar-solutions/Health-Dashboard..."
 git remote set-url origin "https://github.com/sonar-solutions/Health-Dashboard.git"
 ok "origin reset."
 
-# Remove state file — no longer needed and would confuse a fresh setup run
-if [[ -f "$STATE_FILE" ]]; then
-  rm "$STATE_FILE"
-  ok "Removed .claude/setup-state.json"
-fi
-
 # Commit the reset so the working tree is clean for the next setup.sh run
-if ! git diff --quiet "$PROPS" 2>/dev/null || [[ -n "$(git ls-files --deleted .claude/setup-state.json 2>/dev/null)" ]]; then
+if ! git diff --quiet "$PROPS" 2>/dev/null; then
   git add "$PROPS"
-  git rm --cached .claude/setup-state.json 2>/dev/null || true
   git commit -m "chore(teardown): reset sonar-project.properties to template defaults" --no-verify
   ok "Committed reset."
 fi

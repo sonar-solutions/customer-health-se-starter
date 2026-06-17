@@ -192,17 +192,17 @@ step "2/3  SonarCloud project"
 
 info "Looking up your SonarCloud organizations..."
 orgs_resp="$(curl -s -u "$TOKEN:" "$SONAR_URL/api/organizations/search?member=true&ps=50")"
-mapfile -t ORG_KEYS < <(echo "$orgs_resp" | python3 -c "
+ORG_KEYS=()
+ORG_NAMES=()
+while IFS='|' read -r key name; do
+  [[ -z "$key" ]] && continue
+  ORG_KEYS+=("$key")
+  ORG_NAMES+=("$name")
+done < <(echo "$orgs_resp" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
 for o in data.get('organizations', []):
-    print(o['key'])
-" 2>/dev/null)
-mapfile -t ORG_NAMES < <(echo "$orgs_resp" | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-for o in data.get('organizations', []):
-    print(o.get('name', o['key']))
+    print(o['key'] + '|' + o.get('name', o['key']))
 " 2>/dev/null)
 
 if [[ ${#ORG_KEYS[@]} -eq 0 ]]; then

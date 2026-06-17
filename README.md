@@ -37,19 +37,26 @@ See [DEMO_GUIDE.md](DEMO_GUIDE.md) for the full script, track timings, and Q&A p
 
 > `.venv` and `node_modules` are pre-committed — no `pip install` or `npm install` needed.
 
-### Create your own SonarCloud project (run this first)
-
-Each SE manages their own PRs, so each needs their **own** SonarCloud project. The setup script
-creates it, points the repo at it, and tells you which env vars to export:
+### One-time setup (run this first)
 
 ```bash
-bash scripts/setup.sh --org <your-sonarcloud-org> --name "Customer Health Scorecard"
+bash scripts/setup.sh
 ```
 
-It validates your token, creates the project (idempotent — reuses if it exists), writes the key +
-org into `sonar-project.properties` (the single source of truth every hook and script reads), and
-prints the `export` block below. Generate a token first at sonarcloud.io → My Account → Security →
-Generate Token (needs **Create Projects + Execute Analysis** on your org).
+That's it. The script reads your GitHub identity from `gh auth login` and does three things in order:
+
+1. **Creates a private GitHub repo** under your account (`<you>/customer-health-scorecard`), pushes all demo branches + the `demo/live-push-base` tag
+2. **Creates your SonarCloud project**, bound to that GitHub repo — key is auto-derived as `<gh-username>_<repo-slug>`, no manual entry needed
+3. **Opens the `demo/bad-state` PR** and creates your `demo/live-push-<you>` branch via `demo-reset.sh`
+
+Before running, generate a SonarCloud token at sonarcloud.io → My Account → Security → Generate Token (needs **Create Projects + Execute Analysis**) and export it:
+
+```bash
+export SONAR_TOKEN=<your-token>
+bash scripts/setup.sh
+```
+
+Optional flags: `--name "My Project Name"` · `--repo my-repo-name` · `--url https://sc-staging.io`
 
 ### Environment variables
 

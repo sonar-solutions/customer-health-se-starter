@@ -8,7 +8,7 @@
 
 **Before starting:** `bash scripts/demo-reset.sh` · Open fresh Claude Code session · Confirm MCP connection
 
-**Fork:** https://github.com/sonar-solutions/Health-Dashboard
+**Fork:** https://github.com/sonar-solutions/Health-Dashboard — if you don't have fork access, follow the [personal copy setup](README.md#personal-copy-no-fork-access) in the README.
 
 ---
 

@@ -263,6 +263,20 @@ fi
 mv "$tmp" "$PROPS"
 ok "sonar-project.properties updated."
 
+# Write state file so teardown.sh can find what to delete even after properties are reset
+STATE_FILE="$REPO_ROOT/.claude/setup-state.json"
+python3 -c "
+import json
+state = {
+    'github_repo': '$GH_REPO',
+    'sonar_key':   '$SONAR_KEY',
+    'sonar_org':   '$SONAR_ORG',
+    'sonar_url':   '$SONAR_URL',
+}
+print(json.dumps(state, indent=2))
+" > "$STATE_FILE"
+ok "Setup state written to .claude/setup-state.json"
+
 info "Committing sonar-project.properties..."
 git add "$PROPS"
 git commit -m "chore(setup): configure SonarQube project for $GH_USER

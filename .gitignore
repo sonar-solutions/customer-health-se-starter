@@ -1,4 +1,5 @@
 node_modules/
+.claude/setup-state.json
 __pycache__/
 *.pyc
 .env

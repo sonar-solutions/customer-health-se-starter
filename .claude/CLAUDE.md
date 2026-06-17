@@ -60,17 +60,11 @@ npx vitest run --coverage
 
 ## Architecture Checks
 
-### Backend (import-linter)
-```bash
-cd backend && source .venv/bin/activate
-lint-imports
-```
+**Use SonarQube MCP tools only.** Do not run `lint-imports`, `depcruise`, or any other non-SonarQube tooling for architecture or code quality checks.
 
-### Frontend (dependency-cruiser)
-```bash
-cd frontend
-npx depcruise src --config .dependency-cruiser.cjs
-```
+- Architecture violations → `get_current_architecture` + `get_intended_architecture`
+- Issue analysis → `search_sonar_issues_in_projects`, `search_security_hotspots`
+- Metrics / coverage → `get_component_measures`, `get_project_quality_gate_status`
 
 ## Local SonarQube Scan
 ```bash

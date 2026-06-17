@@ -6,7 +6,7 @@
           {
             "type": "command",
             "statusMessage": "Loading SonarQube context...",
-            "command": "python3 .claude/hooks/session-start.py 2>/dev/null || true"
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && python3 .claude/hooks/session-start.py 2>/dev/null || true"
           }
         ]
       }
@@ -27,7 +27,7 @@
           },
           {
             "type": "command",
-            "command": "bash .claude/hooks/pretool-file-issues.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && bash .claude/hooks/pretool-file-issues.sh",
             "statusMessage": "Loading file issues...",
             "timeout": 20
           }
@@ -40,7 +40,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/posttool-push-watch.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && bash .claude/hooks/posttool-push-watch.sh",
             "timeout": 30
           }
         ]
@@ -51,7 +51,7 @@
           {
             "type": "command",
             "statusMessage": "Running SonarQube Agentic Analysis...",
-            "command": ".claude/hooks/sonar-sqaa/build-scripts/posttool-sqaa.sh",
+            "command": "cd \"$(git rev-parse --show-toplevel)\" && .claude/hooks/sonar-sqaa/build-scripts/posttool-sqaa.sh",
             "timeout": 60
           }
         ]

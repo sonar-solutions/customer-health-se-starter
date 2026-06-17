@@ -53,9 +53,15 @@ SONAR_ORG="$(prop 'sonar\.organization')"
 SONAR_URL="$(prop 'sonar\.host\.url')"
 SONAR_URL="${SONAR_URL:-https://sonarcloud.io}"
 
-GH_ORIGIN="$(git remote get-url origin 2>/dev/null || true)"
-# Extract <user>/<repo> from https://github.com/<user>/<repo>.git
-GH_REPO="$(echo "$GH_ORIGIN" | sed -E 's|https://github.com/||;s|\.git$||')"
+# Derive GitHub repo from the project key (<gh-user>_<repo-slug> → <gh-user>/<repo-slug>)
+# This is reliable even if origin has already been reset to sonar-solutions.
+if [[ -n "$SONAR_KEY" && "$SONAR_KEY" != "sonar-solutions_Health-Dashboard" ]]; then
+  GH_USER_FROM_KEY="$(echo "$SONAR_KEY" | cut -d_ -f1)"
+  GH_SLUG_FROM_KEY="$(echo "$SONAR_KEY" | cut -d_ -f2-)"
+  GH_REPO="${GH_USER_FROM_KEY}/${GH_SLUG_FROM_KEY}"
+else
+  GH_REPO=""
+fi
 
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║          SonarQube Demo Repo — Teardown              ║"
@@ -74,8 +80,8 @@ step "1/3  GitHub repo"
 
 if [[ "$KEEP_GH" == true ]]; then
   info "Skipped (--keep-gh)."
-elif [[ -z "$GH_REPO" || "$GH_REPO" == *"sonar-solutions"* ]]; then
-  warn "Origin looks like the shared sonar-solutions repo — skipping deletion for safety."
+elif [[ -z "$GH_REPO" ]]; then
+  warn "Could not derive GitHub repo from project key — skipping. Delete manually if needed."
 else
   info "Deleting https://github.com/$GH_REPO ..."
   delete_out="$(GITHUB_TOKEN="" gh repo delete "$GH_REPO" --yes 2>&1)" && ok "Deleted $GH_REPO." || {

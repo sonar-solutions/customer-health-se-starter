@@ -3,9 +3,9 @@ name: personalize
 description: >
   Generates a customer-tailored demo flow by reading the repo's demo guides (DEMO_GUIDE.md =
   full, WORKSHOP_GUIDE.md = lite, WORKSHOP_GUIDE_SQS.md = Server), selecting beats by
-  complexity × platform, pulling customer context from Glean, checking current Sonar
-  capabilities, validating prompts live via claude -p in a worktree, and writing a ready-to-run
-  demo-flows.md. Source of truth is always the repo guides — no separate library to maintain.
+  complexity × platform, pulling customer context from Glean (if available) or the SE directly,
+  validating prompts live via claude -p in a worktree, and writing a ready-to-run demo-flows.md.
+  Source of truth is always the repo guides — no separate library to maintain.
 triggers:
   - /personalize
   - /personalize <customer-name>
@@ -67,53 +67,59 @@ Check local files first:
 - `~/customers/<CustomerName>/callprep.md`
 - `~/customers/<CustomerName>/account-brief.md`
 
-Then pull from Glean to fill gaps:
+**If Glean is connected**, use it to fill gaps:
 - `gmail_search`: query `"<CustomerName>"`, after 2 weeks ago
 - `meeting_lookup`: query `"<CustomerName>"`, after 4 weeks ago
 - `search`: query `"<CustomerName> AI code quality pain tooling"`
+
+**If Glean is not available**, skip directly to Step 3 — the AskUserQuestion prompts
+cover everything Glean would have provided.
 
 Extract (do not surface raw results to user):
 - **Personas on the call** — role/title
 - **Primary pain or stated interest** — exact quotes if available
 - **AI maturity** — exploring / piloting / scaling
 - **Current tooling** — IDE, CI, code quality, AI coding tools
-- **Platform** — SonarQube **Cloud** or **Server** (on-prem)? Determines which guide to draw from. Default to Cloud unless on-prem / "Server" / "self-hosted" / "no Docker" signals appear.
+- **Platform** — SonarQube **Cloud** or **Server** (on-prem)? Default to Cloud unless
+  on-prem / "Server" / "self-hosted" / "no Docker" signals appear.
 - **Session type** — discovery, scope-and-probe, deep dive, demo
 - **Session length** — if known
 
 ---
 
-## Step 3 — Fill Gaps (max 2 AskUserQuestion calls)
+## Step 3 — Fill Gaps (max 3 AskUserQuestion calls)
 
-Only ask what Step 2 didn't resolve. Batch unknowns per question.
+Ask about everything not resolved by Step 2. Without Glean, all three questions may fire.
+Batch as tightly as possible.
 
 **Q1** (if personas or primary pain missing):
 > "Who's on the call and what's the one thing they most want to see?
 > (Role + their words if you have them — exact quotes anchor the framing best)"
 
-**Q2** (if AI maturity AND session length both missing):
+**Q2** (if AI maturity or session length missing):
 > "Two quick things: How mature is this team with AI coding tools?
 > (exploring / piloting / scaling) — and how long is the session?"
 
-**Q3** (only if platform is genuinely ambiguous and it matters for tool selection):
-> "Are they on SonarQube Cloud or Server (on-prem)? Server changes what's available
-> (no CAG/SQAA, `sonar api` instead) and which guide I draw from."
+**Q3** (if platform, tooling, or session type still unknown):
+> "A few more details: Are they on SonarQube Cloud or Server (on-prem)?
+> What's their current code quality / CI setup? And is this a discovery call,
+> a deep-dive demo, or something else?"
 
-If these are known from Glean, skip to Step 4.
+If everything is resolved from local files or Glean, skip to Step 4.
 
 ---
 
-## Step 4 — Capability Check (Glean)
+## Step 4 — Capability Check (optional, Glean only)
 
-Before reading the guide, search Glean for recent Sonar AI capability updates:
+**Skip this step if Glean is not connected.**
+
+If Glean is available, search for recent Sonar AI capability updates:
 - `search`: `"SonarQube AI capabilities new features 2026"`
 - `search`: `"SQAA sonar verify update"`
 - `search`: `"Sonar MCP announcement"`
 
-Goal: ensure what's about to be recommended reflects the current product. Note any new features
-that didn't exist when the guide was last updated that might be directly relevant to this customer.
-Weave these into framing if they're relevant — flag anything that's significantly different from
-what the guide describes.
+Goal: ensure the recommended beats reflect the current product. Flag anything significantly
+different from what the guides describe.
 
 ---
 
@@ -251,7 +257,7 @@ Create `~/customers/<CustomerName>/demos/` if needed, then write `demo-flows.md`
 **Output rules:**
 - Prompts are verbatim — copied from what was validated in Step 7
 - Customer language beats generic framing — use their words
-- No Snyk, TruFoundry, or tool-specific framing unless those names appeared in Glean context
+- No Snyk, TruFoundry, or tool-specific framing unless those names appeared in the customer context
 - Simplified mode: omit the "How to Frame It" infrastructure line; keep framing to the output, not the plumbing
 
 ---

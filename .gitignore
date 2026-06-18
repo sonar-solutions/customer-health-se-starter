@@ -9,3 +9,4 @@ coverage/
 .coverage
 coverage.xml
 *.lcov
+scripts/teardown.sh

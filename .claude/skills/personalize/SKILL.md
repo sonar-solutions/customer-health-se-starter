@@ -257,7 +257,7 @@ Create `~/customers/<CustomerName>/demos/` if needed, then write `demo-flows.md`
 **Output rules:**
 - Prompts are verbatim — copied from what was validated in Step 7
 - Customer language beats generic framing — use their words
-- No Snyk, TruFoundry, or tool-specific framing unless those names appeared in the customer context
+
 - Simplified mode: omit the "How to Frame It" infrastructure line; keep framing to the output, not the plumbing
 
 ---

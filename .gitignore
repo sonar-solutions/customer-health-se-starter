@@ -10,3 +10,5 @@ coverage/
 coverage.xml
 *.lcov
 scripts/teardown.sh
+.sonar-env
+.envrc

@@ -167,6 +167,10 @@ else
   ok "Repo created: https://github.com/$GH_REPO"
 fi
 
+info "Setting SONAR_TOKEN secret on $GH_REPO..."
+GITHUB_TOKEN="" gh secret set SONAR_TOKEN --body "$TOKEN" --repo "$GH_REPO"
+ok "SONAR_TOKEN secret set."
+
 info "Re-pointing origin → https://github.com/$GH_REPO.git"
 git remote set-url origin "https://github.com/$GH_REPO.git"
 ok "origin updated."
@@ -255,9 +259,11 @@ sed -E \
   -e "s|^sonar\.projectKey[[:space:]]*=.*|sonar.projectKey=$SONAR_KEY|" \
   -e "s|^sonar\.projectName[[:space:]]*=.*|sonar.projectName=$NAME|" \
   -e "s|^sonar\.organization[[:space:]]*=.*|sonar.organization=$SONAR_ORG|" \
-  -e "s|^sonar\.host\.url[[:space:]]*=.*|sonar.host.url=$SONAR_URL|" \
+  -e "/^sonar\.host\.url[[:space:]]*=/d" \
   "$PROPS" > "$tmp"
-if ! grep -q "^sonar\.host\.url" "$tmp"; then
+# Only write sonar.host.url for non-sonarcloud.io targets — the scanner
+# treats its presence as SonarQube Server mode, which breaks Cloud CI.
+if [[ "$SONAR_URL" != "https://sonarcloud.io" ]]; then
   echo "sonar.host.url=$SONAR_URL" >> "$tmp"
 fi
 mv "$tmp" "$PROPS"

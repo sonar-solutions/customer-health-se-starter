@@ -239,7 +239,7 @@ ENV_FILE="$REPO_ROOT/.sonar-env"
   echo "export SONAR_TOKEN=\"$TOKEN\""
   echo "export SONARQUBE_ORG=\"$SONAR_ORG\""
   echo "export SONARQUBE_PROJECT_KEY=\"$SONAR_KEY\""
-  [[ "$SONAR_URL" != "https://sonarcloud.io" ]] && echo "export SONARQUBE_URL=\"$SONAR_URL\""
+  echo "export SONARQUBE_URL=\"$SONAR_URL\""
 } > "$ENV_FILE"
 ok "Wrote .sonar-env (project-local, gitignored)"
 

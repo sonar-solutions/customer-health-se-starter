@@ -250,17 +250,39 @@ ENV_FILE="$REPO_ROOT/.sonar-env"
 } > "$ENV_FILE"
 ok "Wrote .sonar-env (project-local, gitignored)"
 
-if command -v direnv &>/dev/null; then
+_setup_direnv() {
   if [[ ! -f "$REPO_ROOT/.envrc" ]]; then
     echo 'source_env .sonar-env' > "$REPO_ROOT/.envrc"
-    direnv allow "$REPO_ROOT"
-    ok "direnv configured — env loads automatically when you cd here"
+  fi
+  direnv allow "$REPO_ROOT"
+  ok "direnv configured — env loads automatically when you cd here"
+  # Wire the shell hook if not already present
+  local rc=""
+  [[ -f "$HOME/.zshrc" ]]  && rc="$HOME/.zshrc"
+  [[ -f "$HOME/.bashrc" ]] && rc="${rc:-$HOME/.bashrc}"
+  if [[ -n "$rc" ]] && ! grep -q "direnv hook" "$rc" 2>/dev/null; then
+    echo "" >> "$rc"
+    echo 'eval "$(direnv hook '"$(basename "$SHELL")"')"  # added by setup.sh' >> "$rc"
+    info "Added direnv shell hook to $rc — run: source $rc"
+  fi
+}
+
+if command -v direnv &>/dev/null; then
+  _setup_direnv
+elif command -v brew &>/dev/null; then
+  warn "direnv not found. Without it, you must 'source .sonar-env' each time you open Claude Code."
+  read -r -p "  Install direnv now via brew? (Y/n) " yn
+  if [[ "${yn:-Y}" =~ ^[Yy]$ ]]; then
+    brew install direnv --quiet && ok "direnv installed." && _setup_direnv \
+      || warn "brew install failed — install manually: brew install direnv"
   else
-    info ".envrc already exists — add 'source_env .sonar-env' manually if needed"
+    info "Skipped. To install later: brew install direnv"
+    info "Then re-run: direnv allow && source ~/.zshrc"
   fi
 else
-  info "direnv not found. To auto-load env on cd: brew install direnv"
-  info "  then add: eval \"\$(direnv hook zsh)\" to ~/.zshrc"
+  warn "direnv not found and brew not available."
+  info "Install direnv manually, then run: direnv allow"
+  info "Until then, run 'source .sonar-env' before opening Claude Code."
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────

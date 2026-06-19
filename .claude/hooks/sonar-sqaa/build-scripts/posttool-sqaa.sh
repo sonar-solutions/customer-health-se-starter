@@ -4,6 +4,8 @@ if ! command -v sonar &> /dev/null; then
 fi
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+# Load project-local credentials if present (overrides keychain for scoped auth)
+[[ -f "$REPO_ROOT/.sonar-env" ]] && source "$REPO_ROOT/.sonar-env"
 PROJECT="$(bash "$REPO_ROOT/scripts/lib/resolve-project.sh" key)"
 
 output=$(cat | sonar hook claude-post-tool-use --project "$PROJECT" 2>&1)

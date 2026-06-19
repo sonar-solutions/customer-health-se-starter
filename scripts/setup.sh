@@ -140,6 +140,9 @@ ok "SONAR_TOKEN secret set."
 
 info "Re-pointing origin → https://github.com/$GH_REPO.git"
 git remote set-url origin "https://github.com/$GH_REPO.git"
+git remote set-url upstream "https://github.com/sonar-solutions/customer-health-se-starter.git" 2>/dev/null \
+  || git remote add upstream "https://github.com/sonar-solutions/customer-health-se-starter.git"
+ok "upstream → sonar-solutions/customer-health-se-starter (for future updates)"
 
 info "Pushing branches..."
 for branch in main demo/bad-state demo/fixed-state; do
@@ -271,3 +274,6 @@ echo "  MCP will connect automatically to: $SONAR_KEY"
 echo ""
 echo "  Make sure SONAR_TOKEN is in your shell env (export SONAR_TOKEN=<token>)."
 echo "  If not already set, add it to ~/.zshrc and run: source ~/.zshrc"
+echo ""
+echo "  To pull future template updates from sonar-solutions:"
+echo "    git fetch upstream && git merge upstream/main && git push origin main"

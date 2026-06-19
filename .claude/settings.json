@@ -1,4 +1,9 @@
 {
+  "env": {
+    "SONARQUBE_ORG": "sonar-solutions",
+    "SONARQUBE_PROJECT_KEY": "sonar-solutions_Health-Dashboard",
+    "SONARQUBE_URL": "https://sonarcloud.io"
+  },
   "hooks": {
     "SessionStart": [
       {
